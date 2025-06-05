@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPIキャンピングカーチャット</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="chat-container">
+        <div class="chat-header">
+            <h2>キャンピングカーAI相談</h2>
+            <!-- ★ 追加：残り回数表示用の要素 -->
+            <p class="quota-info">本日の残り利用可能回数: <span id="remainingQuota">---</span> 回</p>
+        </div>
+        <div class="chat-messages" id="chatMessages">
+            <div class="message bot-message">
+                <p>こんにちはキャンピングカーに関するご質問にAIがお答えします。何でも聞いてくださいね。</p>
+            </div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="userInput" placeholder="メッセージを入力...">
+            <button id="sendButton">送信</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
