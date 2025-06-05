@@ -3,6 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInput = document.getElementById('userInput');
     const sendButton = document.getElementById('sendButton');
     // ★ 修正：残り回数の数値を表示する要素のIDを変更
+    const shortcutButtonsContainer = document.getElementById('shortcutButtons'); // ★ 追加
     const remainingQuotaValueElement = document.getElementById('remainingQuotaValue');
     let lastUserMessageForAI = "";
 
@@ -10,7 +11,33 @@ document.addEventListener('DOMContentLoaded', () => {
     let loadingIntervalId = null; // setIntervalのIDを保持
     let loadingDots = 0;          // ドットの数を管理
 
-    // ... (fetchAndUpdateQuota 関数は変更なし) ...
+    // ★ よくある質問のショートカット定義
+    const shortcuts = [
+        { label: "料金は？", question: "レンタル料金について教えてください" },
+        { label: "予約方法は？", question: "予約方法を教えてください" },
+        { label: "車両の種類は？", question: "どんな車両がありますか？" },
+        { label: "ペットOK？", question: "ペットは同伴できますか？" }
+    ];
+
+    // ★ ショートカットボタンを生成する関数
+    function createShortcutButtons() {
+        if (!shortcutButtonsContainer) return;
+        shortcutButtonsContainer.innerHTML = ''; // 既存のボタンをクリア
+        shortcuts.forEach(shortcut => {
+            const button = document.createElement('button');
+            button.classList.add('shortcut-button');
+            button.textContent = shortcut.label;
+            button.addEventListener('click', () => {
+                // ユーザーメッセージとして表示し、AIに質問を送信
+                addMessageToChat(shortcut.question, 'user'); // ユーザーが質問したかのように表示
+                lastUserMessageForAI = shortcut.question; // AIに詳しく聞く用に保持
+                sendMessage(shortcut.question, false); // AIに送信 (forceAIはfalseでFAQ検索を試みる)
+                shortcutButtonsContainer.style.display = 'none'; // ボタンを一度隠す
+            });
+            shortcutButtonsContainer.appendChild(button);
+        });
+    }
+
     async function fetchAndUpdateQuota() {
         try {
             const response = await fetch('/api/quota_status');
@@ -31,12 +58,33 @@ document.addEventListener('DOMContentLoaded', () => {
             if (remainingQuotaValueElement) remainingQuotaValueElement.textContent = '表示エラー';
         }
     }
-    fetchAndUpdateQuota();
 
-    sendButton.addEventListener('click', () => sendMessage());
+    // ★ ページ読み込み時
+    fetchAndUpdateQuota();
+    createShortcutButtons(); // ★ ショートカットボタンを生成
+    userInput.disabled = false; // ★ 入力欄を有効化 (fetchAndUpdateQuotaの後など、API準備ができ次第)
+
+    // ★ 送信ボタンの状態を更新する関数
+    function updateSendButtonState() {
+        if (userInput.value.trim() === '') {
+            sendButton.disabled = true;
+        } else {
+            sendButton.disabled = false;
+        }
+    }
+
+    // ★ 入力欄の入力イベントで送信ボタンの状態を更新
+    userInput.addEventListener('input', updateSendButtonState);
+    updateSendButtonState(); // 初期状態を設定
+
+    sendButton.addEventListener('click', () => {
+        sendMessage();
+        shortcutButtonsContainer.style.display = 'none'; // メッセージ送信後もボタンを隠す
+    });
     userInput.addEventListener('keypress', function(event) {
-        if (event.key === 'Enter') {
+        if (event.key === 'Enter' && !sendButton.disabled) { // ★ disabledでないときのみ
             sendMessage();
+            shortcutButtonsContainer.style.display = 'none'; // メッセージ送信後もボタンを隠す
         }
     });
 
@@ -49,9 +97,10 @@ document.addEventListener('DOMContentLoaded', () => {
             lastUserMessageForAI = messageText;
         }
         userInput.value = '';
+        updateSendButtonState(); // ★ 入力欄クリア後にボタン状態を更新
         userInput.focus();
 
-        const loadingMessageBaseText = 'AIが考えています';
+        const loadingMessageBaseText = 'キャン太が考えています'; // 少し親しみやすく変更
         const loadingMessageElement = addMessageToChat(loadingMessageBaseText + '.', 'bot', true);
         loadingDots = 1;
         if (loadingIntervalId) clearInterval(loadingIntervalId);
@@ -101,7 +150,19 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if (!response.ok) {
-                addMessageToChat(`エラー: ${data.reply || data.error || response.statusText}`, 'bot');
+                // ★ エラーメッセージの親切化
+                let friendlyErrorMessage = '申し訳ありません、AIとの通信中にエラーが発生しました。';
+                if (data && data.error) {
+                    if (response.status === 429) { // API上限の場合
+                        friendlyErrorMessage = data.reply || data.error; // サーバーからのメッセージを優先
+                    } else {
+                        friendlyErrorMessage += ` (エラーコード: ${response.status}) 詳細: ${data.error}`;
+                    }
+                } else if (response.statusText) {
+                     friendlyErrorMessage += ` (${response.statusText})`;
+                }
+                addMessageToChat(friendlyErrorMessage, 'bot');
+                console.error('サーバーエラー:', response.status, data);
                 return;
             }
 
@@ -109,6 +170,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (data.source === 'faq' && botMessageElement && !isForcedAI) { // ★ isForcedAIがfalseの場合のみボタン表示
                 const askAIButton = document.createElement('button');
+                // ... (「AIにもっと詳しく聞く」ボタンのロジックは前回と同じ) ...
                 askAIButton.classList.add('ask-ai-button');
                 askAIButton.textContent = 'AIにもっと詳しく聞く';
                 askAIButton.addEventListener('click', () => {
@@ -125,17 +187,18 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
         } catch (error) {
+            // ★ エラーメッセージの親切化
             if (loadingIntervalId) clearInterval(loadingIntervalId);
             loadingIntervalId = null;
             if (loadingMessageElement) removeMessageFromChat(loadingMessageElement.id);
 
             fetchAndUpdateQuota(); // ★ エラー時も呼び出す
             console.error('通信エラー:', error);
-            addMessageToChat('エラー：AIとの通信に失敗しました。', 'bot');
+            addMessageToChat('申し訳ありません、通信エラーが発生しました。ネットワーク接続を確認して再度お試しください。', 'bot');
         }
     }
 
-    function addMessageToChat(text, sender, isLoading = false) {
+    function addMessageToChat(text, sender, isLoading = false) { /* ... (変更なし) ... */
         const messageId = isLoading ? `loading-${Date.now()}` : null;
         const messageElement = document.createElement('div');
         if (isLoading && messageId) {
@@ -156,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return messageElement;
     }
 
-    function removeMessageFromChat(messageId) {
+    function removeMessageFromChat(messageId) { /* ... (変更なし) ... */
         if (messageId) {
             const messageToRemove = document.getElementById(messageId);
             if (messageToRemove) {
