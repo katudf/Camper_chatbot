@@ -3,20 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>KPIキャンピングカーチャット</title>
+    <title>キャンピングカーチャット</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div class="chat-container">
         <div class="chat-header">
             <h2>キャンピングカーAI相談</h2>
-            <!-- ★ 追加：残り回数表示用の要素 -->
-            <p class="quota-info">本日の残り利用可能回数: <span id="remainingQuota">---</span> 回</p>
+            <!-- ★ 変更：ヘッダー内の残り回数表示を削除 -->
         </div>
         <div class="chat-messages" id="chatMessages">
+            <!-- チャットメッセージがここに追加されます -->
             <div class="message bot-message">
-                <p>こんにちはキャンピングカーに関するご質問にAIがお答えします。何でも聞いてくださいね。</p>
+                <p>こんにちは！キャンピングカーに関するご質問にAIがお答えします。何でも聞いてくださいね。</p>
             </div>
+        </div>
+        <!-- ★ 追加：チャット入力エリアの上に残り回数表示用の新しいコンテナと要素を配置 -->
+        <div class="quota-display-container">
+            <span class="quota-label">本日残り:</span>
+            <span id="remainingQuotaValue">---</span>
+            <span class="quota-unit">回</span>
         </div>
         <div class="chat-input-area">
             <input type="text" id="userInput" placeholder="メッセージを入力...">

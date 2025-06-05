@@ -26,7 +26,11 @@ body {
     color: white;
     padding: 15px;
     text-align: center;
-    font-size: 1.2em;
+}
+
+.chat-header h2 {
+    margin: 0; /* h2の上下マージンを0に */
+    font-size: 1.3em;
 }
 
 .chat-messages {
@@ -84,10 +88,24 @@ body {
     margin: 0;
 }
 
+/* ★ 追加：新しい残り回数表示エリアのスタイル */
+.quota-display-container {
+    text-align: right; /* 右寄せにする */
+    font-size: 0.75em; /* 文字を小さくする */
+    color: #888;      /* 色を薄くする */
+    padding: 0px 15px 5px 15px; /* パディングを調整 (上左右下) */
+    border-bottom: 1px solid #eee; /* 入力エリアとの間に細い線を追加 */
+    background-color: #f9f9f9; /* 入力エリアと背景色を合わせるか、少し変える */
+}
+
+.quota-display-container span {
+    margin-left: 2px; /* 各span要素の間に少しスペース */
+}
+
 .chat-input-area {
     display: flex;
     padding: 15px;
-    border-top: 1px solid #ddd;
+    /* border-top: 1px solid #ddd; */ /* quota-display-container に線を移したので削除 */
     background-color: #f9f9f9;
 }
 

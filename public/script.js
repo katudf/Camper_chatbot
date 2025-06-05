@@ -2,7 +2,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatMessages = document.getElementById('chatMessages');
     const userInput = document.getElementById('userInput');
     const sendButton = document.getElementById('sendButton');
-    const remainingQuotaElement = document.getElementById('remainingQuota');
+    // ★ 修正：残り回数の数値を表示する要素のIDを変更
+    const remainingQuotaValueElement = document.getElementById('remainingQuotaValue');
     let lastUserMessageForAI = "";
 
     // ★ 追加：ローディングアニメーション用のグローバル変数
@@ -15,25 +16,27 @@ document.addEventListener('DOMContentLoaded', () => {
             const response = await fetch('/api/quota_status');
             if (!response.ok) {
                 console.error('[SCRIPT.JS] 残り回数の取得に失敗:', response.status);
-                if (remainingQuotaElement) remainingQuotaElement.textContent = '取得失敗';
+                // ★ 修正：表示要素とテキストを変更
+                if (remainingQuotaValueElement) remainingQuotaValueElement.textContent = '取得エラー';
                 return;
             }
             const data = await response.json();
-            if (remainingQuotaElement) {
-                remainingQuotaElement.textContent = data.remaining;
+            // ★ 修正：数値のみを表示
+            if (remainingQuotaValueElement) {
+                remainingQuotaValueElement.textContent = data.remaining;
             }
         } catch (error) {
             console.error('[SCRIPT.JS] 残り回数の取得中にエラー:', error);
-            if (remainingQuotaElement) remainingQuotaElement.textContent = 'エラー';
+            // ★ 修正：表示要素とテキストを変更
+            if (remainingQuotaValueElement) remainingQuotaValueElement.textContent = '表示エラー';
         }
     }
     fetchAndUpdateQuota();
 
-    // ★ 修正: イベントリスナーのコールバックを修正
-    sendButton.addEventListener('click', sendMessage); // sendMessage を直接渡す
+    sendButton.addEventListener('click', () => sendMessage());
     userInput.addEventListener('keypress', function(event) {
         if (event.key === 'Enter') {
-            sendMessage(); // こちらは引数なしでOK (messageOverrideがnullになる)
+            sendMessage();
         }
     });
 
@@ -48,7 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         userInput.value = '';
         userInput.focus();
 
-        const loadingMessageBaseText = 'お待ちください';
+        const loadingMessageBaseText = 'AIが考えています';
         const loadingMessageElement = addMessageToChat(loadingMessageBaseText + '.', 'bot', true);
         loadingDots = 1;
         if (loadingIntervalId) clearInterval(loadingIntervalId);
@@ -94,7 +97,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingIntervalId = null;
             if (loadingMessageElement) removeMessageFromChat(loadingMessageElement.id);
 
-            fetchAndUpdateQuota();
+            fetchAndUpdateQuota(); // ★ メッセージ送受信後にも呼び出す
             const data = await response.json();
 
             if (!response.ok) {
@@ -126,7 +129,7 @@ document.addEventListener('DOMContentLoaded', () => {
             loadingIntervalId = null;
             if (loadingMessageElement) removeMessageFromChat(loadingMessageElement.id);
 
-            fetchAndUpdateQuota();
+            fetchAndUpdateQuota(); // ★ エラー時も呼び出す
             console.error('通信エラー:', error);
             addMessageToChat('エラー：AIとの通信に失敗しました。', 'bot');
         }
