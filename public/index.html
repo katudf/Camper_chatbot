@@ -10,7 +10,7 @@
     <div class="chat-container">
         <div class="chat-header">
             <h2>キャンピングカーAI相談</h2>
-            <div class="quota-display-container"> <!-- 位置はヘッダー内でも、メッセージエリアの上でも良い -->
+            <div class="quota-display-container">
                 <span class="quota-label">本日残り:</span>
                 <span id="remainingQuotaValue">---</span>
                 <span class="quota-unit">回</span>
@@ -19,15 +19,14 @@
         <div class="chat-messages" id="chatMessages">
             <div class="message bot-message">
                 <p>こんにちは！キャンピングカーに関するご質問にAIがお答えします。「キャン太」とお呼びくださいね🚐 何かお手伝いできることはありますか？</p>
-                <!-- ★ 追加：ショートカットボタンのコンテナ -->
                 <div class="shortcut-buttons-container" id="shortcutButtons">
                     <!-- JavaScriptでボタンをここに追加します -->
                 </div>
             </div>
         </div>
         <div class="chat-input-area">
-            <input type="text" id="userInput" placeholder="メッセージを入力..." disabled> <!-- ★ 初期状態をdisabledに -->
-                        <button id="sendButton" disabled>
+            <input type="text" id="userInput" placeholder="メッセージを入力..." disabled>
+            <button id="sendButton" disabled>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-send-fill" viewBox="0 0 16 16">
                     <path d="M15.964.686a.5.5 0 0 0-.65-.65L.767 5.855H.766l-.452.18a.5.5 0 0 0-.082.887l.41.26.001.002 4.995 3.178 3.178 4.995.002.002.26.41a.5.5 0 0 0 .886-.083l6-15Zm-1.833 1.89L6.637 10.07l-.215-.338a.5.5 0 0 0-.154-.154l-.338-.215 7.494-7.494 1.178-.471-.47 1.178Z"/>
                 </svg>

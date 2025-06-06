@@ -1,18 +1,21 @@
-// 1. Expressを読み込む
+// 1. ライブラリの読み込み
 const express = require('express');
 const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 const fs = require('fs');
+// Firebase関連のモジュールをインポート
+const { initializeApp } = require("firebase/app");
+const { getFirestore, collection, addDoc, serverTimestamp } = require("firebase/firestore");
 
-// --- 簡易ロガー関数の導入 ---
+
+// --- 簡易ロガー関数の導入 (変更なし) ---
 const LOG_LEVELS = {
     INFO: 'INFO',
     ERROR: 'ERROR',
     DEBUG: 'DEBUG',
     WARN: 'WARN'
 };
-
 function logger(level, message, details) {
     const timestamp = new Date().toISOString();
     let logMessage = `[${timestamp}] [${level}] ${message}`;
@@ -48,6 +51,22 @@ try {
     logger(LOG_LEVELS.ERROR, '設定ファイルの読み込みまたは解析に失敗しました。', { error: error.message });
 }
 
+// --- Firebaseの初期化 ---
+const firebaseConfig = {
+  apiKey: process.env.FIREBASE_API_KEY,
+  authDomain: process.env.FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.FIREBASE_PROJECT_ID,
+  storageBucket: process.env.FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.FIREBASE_APP_ID
+};
+
+const firebaseApp = initializeApp(firebaseConfig);
+const db = getFirestore(firebaseApp);
+logger(LOG_LEVELS.INFO, "Firebase Firestore has been initialized successfully.");
+// --- Firebase初期化ここまで ---
+
+
 const API_KEY = process.env.GEMINI_API_KEY;
 if (!API_KEY) {
     logger(LOG_LEVELS.ERROR, "環境変数 GEMINI_API_KEY が設定されていません。");
@@ -58,9 +77,8 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 
 let promptTemplate = '';
 try {
-    // FAQ統合版のプロンプトを読み込む
     promptTemplate = fs.readFileSync(path.join(__dirname, 'prompt_template.txt'), 'utf8');
-    logger(LOG_LEVELS.INFO, 'プロンプトテンプレートをprompt_template.txtから正常に読み込みました。');
+    logger(LOG_LEVELS.INFO, 'プロンプトテンプレートを読み込みました。');
 } catch (error) {
     logger(LOG_LEVELS.ERROR, 'prompt_template.txtの読み込みに失敗しました:', { error: error.message });
 }
@@ -69,10 +87,6 @@ let requestCountToday = 0;
 let lastResetDate = new Date().toLocaleDateString();
 const QUOTA_DATA_FILE_PATH = path.join(__dirname, 'quota_data.json');
 const userChatSessions = {};
-
-app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
-app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 function loadQuotaData() {
     try {
@@ -110,6 +124,10 @@ function resetCountIfNewDay() {
 
 loadQuotaData();
 
+app.use(express.json());
+app.use(express.static(path.join(__dirname, 'public')));
+app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
 app.get('/api/quota_status', (req, res) => {
     resetCountIfNewDay();
     const remainingRequests = dailyRequestLimit - requestCountToday;
@@ -140,8 +158,7 @@ app.post('/api/chat', async (req, res) => {
             logger(LOG_LEVELS.WARN, "無効なメッセージを受信しました。", { userId, ip: req.ip });
             return res.status(400).json({ reply: 'メッセージが空です。', source: 'system' });
         }
-
-        // 常にAIに応答させる
+        
         requestCountToday++;
         logger(LOG_LEVELS.INFO, `本日 ${requestCountToday} 回目のAPIリクエストです。`, { userId });
         saveQuotaData();
@@ -152,7 +169,7 @@ app.post('/api/chat', async (req, res) => {
             logger(LOG_LEVELS.INFO, `ユーザーID '${userId}' のための新しいChatSessionを作成します。`);
             const model = genAI.getGenerativeModel({
                 model: modelName,
-                systemInstruction: promptTemplate, // FAQ統合版プロンプトを使用
+                systemInstruction: promptTemplate,
             });
             userChatSessions[userId] = model.startChat({ history: [] });
             logger(LOG_LEVELS.INFO, "Chat session started.", { userId });
@@ -165,6 +182,25 @@ app.post('/api/chat', async (req, res) => {
 
         logger(LOG_LEVELS.INFO, 'Geminiからの応答:', { reply: replyMessage.substring(0, 100) + "...", userId });
 
+        // ★★★★★ 修正点 ★★★★★
+        // Firestoreへの保存処理をtry...catchで囲む
+        // これにより、もしDBへの保存に失敗しても、クライアントへの応答はブロックされない
+        try {
+            const conversationLog = {
+                userId: userId,
+                question: userMessage,
+                answer: replyMessage,
+                timestamp: serverTimestamp()
+            };
+            await addDoc(collection(db, "conversations"), conversationLog);
+            logger(LOG_LEVELS.INFO, `会話ログをFirestoreに保存しました。`);
+        } catch (dbError) {
+            // DB保存エラーはログに出力するのみで、処理は続行する
+            logger(LOG_LEVELS.ERROR, 'Firestoreへの会話ログ保存中にエラーが発生しました。', { error: dbError.message });
+        }
+        // ★★★★★ 修正ここまで ★★★★★
+
+        // クライアントに応答を返す
         res.json({ reply: replyMessage, source: 'ai' });
 
     } catch (error) {
