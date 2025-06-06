@@ -1,0 +1,11 @@
+{
+    "apiSettings": {
+        "dailyRequestLimit": 500,
+        "modelName": "gemini-1.5-flash-latest",
+        "conversationHistoryLength": 10
+    },
+    "serverSettings": {
+        "port": 3000
+    },
+    "logLevel": "INFO"
+}

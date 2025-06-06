@@ -1,8 +1,92 @@
 [
+  {
+    "keywords": ["ジル", "ZIL", "特徴", "詳細", "zil"],
+    "questionPatternSource": "(ジル|ZIL|zil).*(特徴|設備|装備|詳細|見たい)",
+    "answer": "ZIL (ジル) 520は、後部常設2段ベッドや家庭用エアコンなどを備えた人気のモデルです🚐✨",
+    "relatedLink": "https://kpi-campingcar.com/car/#zil",
+    "linkText": "ZIL (ジル) 520の詳細ページへ"
+  },
+  {
+    "keywords": ["クレア", "CREA", "特徴", "詳細", "crea"],
+    "questionPatternSource": "(クレア|CREA|crea).*(特徴|設備|装備|詳細|見たい)",
+    "answer": "CREA (クレア) 5.3Xは、RECROシートやクルーズコントロールを搭載した4WD仕様のモデルです🚙💨",
+    "relatedLink": "https://kpi-campingcar.com/car/#crea",
+    "linkText": "CREA (クレア) 5.3Xの詳細ページへ"
+  },
+  {
+    "keywords": ["予約", "フォーム", "手続き", "方法", "予約したい"],
+    "questionPatternSource": "予約.*(フォーム|手続き|方法|したい)",
+    "answer": "キャンピングカーのご予約は、こちらの専用予約フォームからお手続きいただけますよ😊",
+    "relatedLink": "https://kpi-campingcar.com/booking-form/",
+    "linkText": "予約フォームはこちら"
+  },
+  {
+    "keywords": ["使い方", "使用方法", "操作"],
+    "questionPatternSource": "(使い方|使用方法|操作)",
+    "answer": "キャンピングカーの詳しい使用方法については、こちらのページでバッチリご案内しています👍",
+    "relatedLink": "https://kpi-campingcar.com/car/#section4",
+    "linkText": "キャンピングカー使用方法"
+  },
+  {
+    "keywords": ["マナー", "ルール", "車中泊"],
+    "questionPatternSource": "(マナー|ルール|車中泊.*(注意|気をつける))",
+    "answer": "皆さんに気持ちよく使っていただくために、キャンピングカーご使用時のマナーについてご案内ページをご用意しています✨",
+    "relatedLink": "https://kpi-campingcar.com/car/#section6",
+    "linkText": "キャンピングカーの使用マナー"
+  },
+  {
+    "keywords": ["事故", "故障", "トラブル", "保険", "損害"],
+    "questionPatternSource": "(事故|故障|トラブル|保険|損害)",
+    "answer": "万が一の事故や車両トラブルが発生した際の対応フローについては、こちらをチェックしてくださいね🙏",
+    "relatedLink": "https://kpi-campingcar.com/car/#section7",
+    "linkText": "事故等の損害が発生した時の流れ"
+  },
+  {
+    "keywords": ["質問", "FAQ", "よくある", "faq"],
+    "questionPatternSource": "(質問|FAQ|faq|よくある.*質問)",
+    "answer": "お客様からよくいただくご質問とその回答をまとめていますので、ぜひ参考にしてくださいね😉",
+    "relatedLink": "https://kpi-campingcar.com/car/#section10",
+    "linkText": "よくあるご質問 (FAQ)"
+  },
+  {
+    "keywords": ["料金", "値段", "費用", "プラン", "いくら"],
+    "questionPatternSource": "(料金|値段|費用|プラン|いくら)",
+    "answer": "レンタル料金の詳細は、こちらの料金案内ページでご確認いただけます💰",
+    "relatedLink": "https://kpi-campingcar.com/price/",
+    "linkText": "料金案内ページへ"
+  },
+  {
+    "keywords": ["お知らせ", "ニュース", "イベント", "情報"],
+    "questionPatternSource": "(お知らせ|ニュース|イベント|情報)",
+    "answer": "最新のお知らせやお得なイベント情報は、こちらのページで随時更新しているので、要チェックです📣",
+    "relatedLink": "https://kpi-campingcar.com/news/",
+    "linkText": "お知らせ・イベント情報"
+  },
+  {
+    "keywords": ["店舗", "場所", "アクセス", "問い合わせ", "連絡先", "どこ"],
+    "questionPatternSource": "(店舗|場所|アクセス|どこ|問い合わせ|連絡先)",
+    "answer": "私たちの店舗の所在地やお問い合わせ先は、こちらのページでご案内しています🏢📞",
+    "relatedLink": "https://kpi-campingcar.com/about/",
+    "linkText": "店舗紹介・お問合せ"
+  },
+  {
+    "keywords": ["貸出", "当日", "流れ", "手続き", "借りるとき"],
+    "questionPatternSource": "貸出.*(当日|流れ|手続き)|借りるとき",
+    "answer": "キャンピングカー貸出当日の流れについては、こちらで詳しくご案内しているので、事前にご確認くださいね📝",
+    "relatedLink": "https://kpi-campingcar.com/rentalflow/",
+    "linkText": "貸出当日の流れ"
+  },
+  {
+    "keywords": ["返却", "当日", "流れ", "手続き", "返すとき"],
+    "questionPatternSource": "返却.*(当日|流れ|手続き)|返すとき",
+    "answer": "ご返却時の流れと手続きについては、こちらをご確認ください。お疲れ様でした😊",
+    "relatedLink": "https://kpi-campingcar.com/rentalflow/#section3",
+    "linkText": "返却時の流れ"
+  },
     {
         "keywords": ["種類", "タイプ", "どんな"],
         "questionPatternSource": "どのような種類|どんな種類|車両.*種類|タイプ",
-        "answer": "当社では、主に「ZIL (ジル) 520」と「CREA (クレア) 5.3X」の2種類のキャンピングカーをご用意しております。これらの車両は、お客様のさまざまなニーズにお応えできるよう、快適性と機能性を重視したモデルとなっております。"
+        "answer": "当社では、主に「ZIL (ジル) 520」と「CREA (クレア) 5.3X」の2種類のキャンピングカーをご用意しております。それぞれの詳細は各車両ページをご覧ください。"
     },
     {
         "keywords": ["ジル", "ZIL", "クレア", "CREA", "特徴", "設備", "装備"],
