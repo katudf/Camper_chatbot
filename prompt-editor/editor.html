@@ -40,7 +40,7 @@
                 <fieldset>
                     <legend>❓ Q&A形式の知識ベース</legend>
                     <p class="description">特定の質問に決まった回答をさせたい場合に入力します。<br>一行に「質問文:::(コロン3つ)回答文」の形式で記述してください。</p>
-                    <textarea id="qnaContent" rows="8"></textarea>
+                    <textarea id="qnaContent" rows="8" placeholder="ペットは同伴できますか？:::申し訳ありませんが、ペットの同伴はご遠慮いただいております。"></textarea>
                 </fieldset>
 
                 <!-- 会社情報 -->
@@ -84,7 +84,7 @@
                     </div>
                 </fieldset>
                 
-                 <!-- 持ち物・準備 (新規追加) -->
+                 <!-- 持ち物・準備 -->
                 <fieldset>
                     <legend>🎒 持ち物・準備</legend>
                     <label for="essentialItems">キャンピングカー必須アイテム:</label>
@@ -93,7 +93,7 @@
                     <textarea id="convenientItems" rows="5" placeholder="例: ランタン、延長コード、虫除けスプレー..."></textarea>
                 </fieldset>
 
-                <!-- おすすめ情報 (新規追加) -->
+                <!-- おすすめ情報 -->
                 <fieldset>
                     <legend>🌟 おすすめ情報</legend>
                     <label for="overnightSpots">車中泊スポット案内:</label>
@@ -124,13 +124,13 @@
                     <textarea id="usageManners" rows="4"></textarea>
                     <label for="prohibitedItems">禁止事項:</label>
                     <textarea id="prohibitedItems" rows="4"></textarea>
-                </fieldset>
-                
-                <!-- 緊急時・ポリシー -->
-                 <fieldset>
-                    <legend>📜 緊急時・各種規約</legend>
                     <label for="accidentResponse">事故対応:</label>
                     <textarea id="accidentResponse" rows="4"></textarea>
+                </fieldset>
+                
+                <!-- 各種規約 -->
+                 <fieldset>
+                    <legend>📜 各種規約</legend>
                     <label for="termsContent">貸渡約款:</label>
                     <textarea id="termsContent" rows="6" placeholder="貸渡約款の全文または要約をここに記述..."></textarea>
                     <label for="privacyPolicyContent">プライバシーポリシー:</label>
@@ -161,6 +161,10 @@
                     <input type="url" id="link_checkinFlow">
                      <label for="link_accidentResponse">事故対応URL:</label>
                     <input type="url" id="link_accidentResponse">
+                    <label for="link_terms">貸渡約款URL:</label>
+                    <input type="url" id="link_terms">
+                    <label for="link_privacy">プライバシーポリシーURL:</label>
+                    <input type="url" id="link_privacy">
                 </fieldset>
 
                 <!-- AIの挙動制御 -->
@@ -171,6 +175,17 @@
                     <label for="negativePrompt">ネガティブプロンプト (AIに言ってほしくないこと):</label>
                     <textarea id="negativePrompt" rows="3"></textarea>
                 </fieldset>
+                
+                <!-- 会話履歴エクスポート機能 -->
+                <fieldset>
+                    <legend>📊 会話履歴のエクスポート</legend>
+                    <p class="description">
+                        ユーザーとチャットボットのすべての会話履歴をCSVファイルとしてダウンロードします。
+                    </p>
+                    <button type="button" id="export-button">会話履歴をダウンロード</button>
+                    <p id="export-status" class="status-message"></p>
+                </fieldset>
+
 
                 <button type="submit" id="save-button">変更を保存</button>
                 <p id="save-status" class="status-message"></p>

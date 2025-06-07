@@ -32,7 +32,7 @@ try {
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
     });
-    // dbインスタンスは各関数内で取得するため、ここでは初期化のみ
+    // dbインスタンスは各関数内で admin.firestore() を呼び出して取得
     logger(LOG_LEVELS.INFO, "Firebase Admin SDK has been initialized successfully.");
 } catch (error) {
     logger(LOG_LEVELS.ERROR, 'Firebase Admin SDKの初期化に失敗しました。service-account-key.jsonファイルを確認してください。', { error: error.message });
@@ -184,6 +184,50 @@ app.use('/api/chat', apiLimiter);
 app.use('/editor', express.static(path.join(__dirname, 'prompt-editor')));
 app.use(express.static(path.join(__dirname, 'public')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+
+// ★★★★★ 新しいAPIエンドポイントを追加 ★★★★★
+/**
+ * 会話履歴をCSV形式でエクスポートするAPI
+ */
+app.get('/api/export_conversations', async (req, res) => {
+    logger(LOG_LEVELS.INFO, "--- /api/export_conversations リクエスト受信 ---");
+    try {
+        const db = admin.firestore();
+        const conversationsRef = db.collection('conversations');
+        // タイムスタンプの降順（新しいものから）でデータを取得
+        const snapshot = await conversationsRef.orderBy('timestamp', 'desc').get();
+
+        if (snapshot.empty) {
+            logger(LOG_LEVELS.WARN, "エクスポートする会話ログがありませんでした。");
+            return res.status(404).send("エクスポートするデータがありません。");
+        }
+
+        let csvData = '"Timestamp","UserID","Question","Answer"\n'; // CSVヘッダー
+
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            const timestamp = data.timestamp ? data.timestamp.toDate().toLocaleString('ja-JP') : 'N/A';
+            const userId = `"${data.userId || ''}"`;
+            // " や , を含む可能性のあるフィールドをエスケープ
+            const question = `"${(data.question || '').replace(/"/g, '""')}"`;
+            const answer = `"${(data.answer || '').replace(/"/g, '""')}"`;
+            
+            csvData += `${timestamp},${userId},${question},${answer}\n`;
+        });
+        
+        // CSVファイルとしてダウンロードさせるためのヘッダーを設定
+        res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+        res.setHeader('Content-Disposition', `attachment; filename="conversation_history_${Date.now()}.csv"`);
+        res.send(Buffer.from('\uFEFF' + csvData)); // UTF-8 BOM付きで文字化けを防ぐ
+
+        logger(LOG_LEVELS.INFO, "会話ログのCSVエクスポートに成功しました。");
+
+    } catch (error) {
+        logger(LOG_LEVELS.ERROR, '/api/export_conversations でエラーが発生しました:', { error: error.message, stack: error.stack });
+        res.status(500).send("エクスポート中にサーバーエラーが発生しました。");
+    }
+});
+// ★★★★★ API追加ここまで ★★★★★
 
 const userChatSessions = {};
 

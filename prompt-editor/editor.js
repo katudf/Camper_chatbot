@@ -27,6 +27,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginErrorP = document.getElementById('login-error');
     const saveStatusP = document.getElementById('save-status');
     const promptForm = document.getElementById('prompt-form');
+    // ★★★★★ エクスポート機能関連のDOM要素を取得 ★★★★★
+    const exportButton = document.getElementById('export-button');
+    const exportStatusP = document.getElementById('export-status');
+    // ★★★★★ 取得ここまで ★★★★★
 
     // 各ドキュメントとHTML要素のIDのマッピングを更新
     const docFieldIds = {
@@ -139,5 +143,59 @@ document.addEventListener('DOMContentLoaded', () => {
             saveStatusP.className = 'status-message';
         }, 4000);
     });
+
+    // ★★★★★ エクスポートボタンのクリックイベントを追加 ★★★★★
+    exportButton.addEventListener('click', async () => {
+        exportStatusP.textContent = 'エクスポート準備中...';
+        exportStatusP.className = 'status-message';
+        exportButton.disabled = true;
+
+        try {
+            const response = await fetch('/api/export_conversations');
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(`サーバーエラー: ${response.status} - ${errorText}`);
+            }
+
+            // ファイルをBlobとして取得
+            const blob = await response.blob();
+            // ダウンロード用のリンクを生成
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            // ヘッダーからファイル名を取得、失敗したらデフォルト名
+            const disposition = response.headers.get('content-disposition');
+            let filename = 'conversation_history.csv';
+            if (disposition && disposition.indexOf('attachment') !== -1) {
+                const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                const matches = filenameRegex.exec(disposition);
+                if (matches != null && matches[1]) {
+                    filename = matches[1].replace(/['"]/g, '');
+                }
+            }
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            a.remove();
+            
+            exportStatusP.textContent = 'エクスポートが完了しました。';
+            exportStatusP.classList.add('success');
+
+        } catch (error) {
+            console.error("Error exporting data:", error);
+            exportStatusP.textContent = `エクスポートに失敗しました: ${error.message}`;
+            exportStatusP.classList.add('error');
+        }
+
+        exportButton.disabled = false;
+        setTimeout(() => {
+            exportStatusP.textContent = '';
+            exportStatusP.className = 'status-message';
+        }, 5000);
+    });
+    // ★★★★★ イベント追加ここまで ★★★★★
 
 });
