@@ -27,6 +27,9 @@
             </div>
 
             <form id="prompt-form">
+                <!-- アクティブバージョン表示エリア -->
+                <div id="active-version-info" style="margin-bottom: 10px; color: #333; font-weight: bold;"></div>
+
                 <!-- ボットの基本設定 -->
                 <fieldset>
                     <legend>🤖 ボットの基本設定</legend>
@@ -191,6 +194,12 @@
                 <p id="save-status" class="status-message"></p>
             </form>
         </div>
+        <!-- ★★★★★ バージョン履歴エリア追加 ★★★★★ -->
+        <div id="version-history-container" style="display:none; margin-top:40px;">
+            <h2>プロンプト バージョン履歴</h2>
+            <div id="version-history-list"></div>
+        </div>
+        <!-- ★★★★★ バージョン履歴エリアここまで ★★★★★ -->
     </div>
 
     <!-- Firebase SDK -->

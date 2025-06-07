@@ -32,13 +32,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const exportStatusP = document.getElementById('export-status');
     // ★★★★★ 取得ここまで ★★★★★
 
+    // バージョン履歴エリアのDOM取得
+    const versionHistoryContainer = document.getElementById('version-history-container');
+    const versionHistoryList = document.getElementById('version-history-list');
+
     // 各ドキュメントとHTML要素のIDのマッピングを更新
     const docFieldIds = {
         bot_personality: ['roleDescription', 'communicationPrinciples'],
         bot_control: ['inappropriateQuestionResponse', 'negativePrompt'],
         company_info: ['companyName', 'location', 'phone', 'businessHours', 'holidays', 'appealPoints', 'campaignInfo'],
         qna: ['qnaContent'],
-        links: ['link_instagram', 'link_line', 'link_zil', 'link_crea', 'link_news', 'link_pricing', 'link_booking', 'link_checkoutFlow', 'link_checkinFlow', 'link_accidentResponse'],
+        links: ['link_instagram', 'link_line', 'link_zil', 'link_crea', 'link_news', 'link_pricing', 'link_booking', 'link_checkoutFlow', 'link_checkinFlow', 'link_accidentResponse', 'link_terms', 'link_privacy'],
         vehicle_zil: ['vehicle_zil_features'],
         vehicle_crea: ['vehicle_crea_features'],
         vehicle_common: ['commonEquipment', 'otherEquipment'],
@@ -57,10 +61,13 @@ document.addEventListener('DOMContentLoaded', () => {
             editorContainer.style.display = 'block';
             userEmailSpan.textContent = `ログイン中: ${user.email}`;
             loadPromptData();
+            versionHistoryContainer.style.display = 'block';
+            loadVersionHistory();
         } else {
             loginContainer.style.display = 'block';
             editorContainer.style.display = 'none';
             userEmailSpan.textContent = '';
+            versionHistoryContainer.style.display = 'none';
         }
     });
 
@@ -85,24 +92,33 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- Firestore Data Handling Logic (変更なし) ---
     async function loadPromptData() {
-        console.log("Loading prompt data from Firestore...");
+        console.log("Loading prompt data from active prompt version (via API)...");
         try {
+            // 新APIでアクティブバージョンとデータを取得
+            const res = await fetch('/api/get_active_prompt_version');
+            if (!res.ok) throw new Error('アクティブバージョンの取得に失敗しました');
+            const data = await res.json();
+            const promptData = data.promptData;
+            if (!promptData) throw new Error('promptData が見つかりません');
+
+            // 各フォームフィールドに値をセット
             for (const [docId, fieldIds] of Object.entries(docFieldIds)) {
-                const docRef = db.collection('prompts').doc(docId);
-                const docSnap = await docRef.get();
-                if (docSnap.exists) {
-                    const data = docSnap.data();
-                    fieldIds.forEach(fieldId => {
-                        const element = document.getElementById(fieldId);
-                        if (element && data[fieldId] !== undefined) {
-                            element.value = data[fieldId];
-                        }
-                    });
-                } else {
-                    console.warn(`Document "${docId}" does not exist in Firestore!`);
-                }
+                const docData = promptData[docId] || {};
+                fieldIds.forEach(fieldId => {
+                    const element = document.getElementById(fieldId);
+                    if (element && docData[fieldId] !== undefined) {
+                        element.value = docData[fieldId];
+                    } else if (element) {
+                        element.value = '';
+                    }
+                });
             }
-            console.log("Prompt data loaded successfully.");
+            // アクティブバージョン表示
+            const versionInfoDiv = document.getElementById('active-version-info');
+            if (versionInfoDiv && data.version) {
+                versionInfoDiv.textContent = `現在のアクティブバージョン: v${data.version}（${data.editor || '不明'}）`;
+            }
+            console.log("Prompt data loaded from active version.");
         } catch (error) {
             console.error("Error loading prompt data: ", error);
             alert("データの読み込み中にエラーが発生しました。コンソールを確認してください。");
@@ -116,21 +132,27 @@ document.addEventListener('DOMContentLoaded', () => {
         saveButton.disabled = true;
 
         try {
-            const batch = db.batch();
+            // すべてのフォーム値を集約
+            const promptData = {};
             for (const [docId, fieldIds] of Object.entries(docFieldIds)) {
-                const dataToSave = {};
+                promptData[docId] = {};
                 fieldIds.forEach(fieldId => {
                     const element = document.getElementById(fieldId);
                     if (element) {
-                        dataToSave[fieldId] = element.value;
+                        promptData[docId][fieldId] = element.value;
                     }
                 });
-                const docRef = db.collection('prompts').doc(docId);
-                batch.set(docRef, dataToSave, { merge: true });
             }
-            await batch.commit();
+            // API経由で保存
+            const res = await fetch('/api/save_prompt_version', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ promptData, editor: auth.currentUser ? auth.currentUser.email : 'unknown' })
+            });
+            if (!res.ok) throw new Error('サーバー保存に失敗しました');
             saveStatusP.textContent = '正常に保存されました！';
             saveStatusP.classList.add('success');
+            loadVersionHistory(); // 保存後に履歴を更新
         } catch (error) {
             console.error("Error saving data: ", error);
             saveStatusP.textContent = '保存に失敗しました。コンソールを確認してください。';
@@ -197,5 +219,55 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 5000);
     });
     // ★★★★★ イベント追加ここまで ★★★★★
+
+    // バージョン履歴を取得して表示
+    async function loadVersionHistory() {
+        versionHistoryList.innerHTML = '読み込み中...';
+        try {
+            const res = await fetch('/api/prompt_versions');
+            if (!res.ok) throw new Error('バージョン履歴の取得に失敗しました');
+            const data = await res.json();
+            if (!data.versions || data.versions.length === 0) {
+                versionHistoryList.innerHTML = '<p>バージョン履歴がありません。</p>';
+                return;
+            }
+            versionHistoryList.innerHTML = '';
+            data.versions.forEach(v => {
+                const createdAt = v.createdAt && v.createdAt._seconds ?
+                    new Date(v.createdAt._seconds * 1000).toLocaleString('ja-JP') : 'N/A';
+                const item = document.createElement('div');
+                item.className = 'version-history-item';
+                item.innerHTML = `
+                    <b>v${v.version}</b>（${createdAt}） 編集者: ${v.editor || '不明'}
+                    <button data-version-id="${v.id}" class="restore-version-btn">このバージョンを復元</button>
+                `;
+                versionHistoryList.appendChild(item);
+            });
+            // 復元ボタンのイベント
+            document.querySelectorAll('.restore-version-btn').forEach(btn => {
+                btn.addEventListener('click', async (e) => {
+                    const versionId = btn.getAttribute('data-version-id');
+                    if (!confirm('このバージョンをアクティブにしますか？')) return;
+                    btn.disabled = true;
+                    btn.textContent = '復元中...';
+                    try {
+                        const res = await fetch('/api/activate_prompt_version', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ versionId })
+                        });
+                        if (!res.ok) throw new Error('復元に失敗しました');
+                        alert('バージョンを復元し、アクティブ化しました。\nページを再読み込みしてください。');
+                    } catch (err) {
+                        alert('復元エラー: ' + err.message);
+                    }
+                    btn.disabled = false;
+                    btn.textContent = 'このバージョンを復元';
+                });
+            });
+        } catch (err) {
+            versionHistoryList.innerHTML = `<span style="color:red;">${err.message}</span>`;
+        }
+    }
 
 });

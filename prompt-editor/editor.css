@@ -145,3 +145,29 @@ button:hover {
     padding-top: 0;
     margin-top: 0;
 }
+
+.version-history-item {
+    background: #f7f7fa;
+    border: 1px solid #e0e0e0;
+    border-radius: 5px;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 1em;
+}
+.version-history-item button.restore-version-btn {
+    background: #28a745;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    padding: 6px 16px;
+    font-size: 0.95em;
+    cursor: pointer;
+    margin-left: 20px;
+    transition: background 0.2s;
+}
+.version-history-item button.restore-version-btn:hover {
+    background: #218838;
+}

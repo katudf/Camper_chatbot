@@ -3,6 +3,7 @@ const path = require('path');
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 const rateLimit = require('express-rate-limit');
+const cors = require('cors');
 
 // Firebase Admin SDK をインポート
 const admin = require('firebase-admin');
@@ -25,6 +26,9 @@ function logger(level, message, details) {
 
 const app = express();
 const port = process.env.PORT || 3000;
+
+app.use(cors());
+app.use(express.json()); // これを最初に移動
 
 // --- Firebase Admin SDKの初期化 ---
 try {
@@ -50,22 +54,114 @@ const genAI = new GoogleGenerativeAI(API_KEY);
 
 let promptTemplate = '';
 
+// ★★★★★ プロンプトバージョン管理API追加 ★★★★★
+/**
+ * プロンプトの新バージョンを保存し、アクティブバージョンを更新するAPI
+ * POST /api/save_prompt_version
+ * body: { promptData: {...}, editor: '編集者名' }
+ */
+app.post('/api/save_prompt_version', async (req, res) => {
+    console.log('save_prompt_version headers:', req.headers);
+    console.log('save_prompt_version req.body:', req.body); // 受信内容を確認
+    try {
+        const db = admin.firestore();
+        const { promptData, editor } = req.body;
+        if (!promptData) return res.status(400).json({ error: 'promptDataがありません' });
+        // 最新バージョン番号を取得
+        const versionsSnap = await db.collection('prompt_versions').orderBy('version', 'desc').limit(1).get();
+        let newVersion = 1;
+        if (!versionsSnap.empty) {
+            newVersion = (versionsSnap.docs[0].data().version || 0) + 1;
+        }
+        const now = admin.firestore.FieldValue.serverTimestamp();
+        // 新バージョンを保存
+        const versionDoc = await db.collection('prompt_versions').add({
+            ...promptData,
+            version: newVersion,
+            createdAt: now,
+            editor: editor || 'unknown'
+        });
+        // promptsコレクションにアクティブバージョンIDを保存
+        await db.collection('prompts').doc('active').set({
+            activeVersionId: versionDoc.id,
+            updatedAt: now
+        });
+        await loadAndBuildPrompt(); // 追加: 保存後にプロンプト再読込
+        logger(LOG_LEVELS.INFO, `新しいプロンプトバージョン(v${newVersion})を保存しアクティブ化しました。`, { version: newVersion });
+        res.json({ success: true, version: newVersion, versionId: versionDoc.id });
+    } catch (error) {
+        logger(LOG_LEVELS.ERROR, '/api/save_prompt_version でエラー', { error: error.message });
+        res.status(500).json({ error: '保存に失敗しました' });
+    }
+});
+
+/**
+ * バージョン履歴一覧取得API
+ * GET /api/prompt_versions
+ */
+app.get('/api/prompt_versions', async (req, res) => {
+    try {
+        const db = admin.firestore();
+        const snap = await db.collection('prompt_versions').orderBy('version', 'desc').get();
+        const versions = snap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        res.json({ versions });
+    } catch (error) {
+        logger(LOG_LEVELS.ERROR, '/api/prompt_versions でエラー', { error: error.message });
+        res.status(500).json({ error: '取得に失敗しました' });
+    }
+});
+
+/**
+ * 指定バージョンをアクティブ化（ロールバック）するAPI
+ * POST /api/activate_prompt_version
+ * body: { versionId: '...' }
+ */
+app.post('/api/activate_prompt_version', async (req, res) => {
+    try {
+        const db = admin.firestore();
+        const { versionId } = req.body;
+        if (!versionId) return res.status(400).json({ error: 'versionIdがありません' });
+        // バージョン存在確認
+        const versionDoc = await db.collection('prompt_versions').doc(versionId).get();
+        if (!versionDoc.exists) return res.status(404).json({ error: '指定バージョンが存在しません' });
+        // promptsコレクションのactiveVersionIdを更新
+        await db.collection('prompts').doc('active').set({
+            activeVersionId: versionId,
+            updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        });
+        await loadAndBuildPrompt(); // 追加: アクティブ化後にプロンプト再読込
+        logger(LOG_LEVELS.INFO, `プロンプトバージョン(${versionId})をアクティブ化しました。`);
+        res.json({ success: true });
+    } catch (error) {
+        logger(LOG_LEVELS.ERROR, '/api/activate_prompt_version でエラー', { error: error.message });
+        res.status(500).json({ error: 'アクティブ化に失敗しました' });
+    }
+});
+// ★★★★★ バージョン管理APIここまで ★★★★★
+
 // ★★★★★ 修正点 ★★★★★
 async function loadAndBuildPrompt() {
-    logger(LOG_LEVELS.INFO, 'Firestoreからプロンプトデータを読み込んでいます...');
+    logger(LOG_LEVELS.INFO, 'Firestoreからアクティブなプロンプトバージョンを読み込んでいます...');
     try {
-        const db = admin.firestore(); // Admin SDKのFirestoreインスタンスを使用
-        const promptsCollectionRef = db.collection('prompts');
-        const querySnapshot = await promptsCollectionRef.get();
-        
-        const p = {};
-        querySnapshot.forEach(doc => { p[doc.id] = doc.data(); });
-
-        if (Object.keys(p).length === 0) {
-            logger(LOG_LEVELS.ERROR, 'Firestoreにプロンプトデータが見つかりません。');
-            process.exit(1);
+        const db = admin.firestore();
+        // promptsコレクションからアクティブバージョンIDを取得
+        const activeDoc = await db.collection('prompts').doc('active').get();
+        if (!activeDoc.exists || !activeDoc.data().activeVersionId) {
+            logger(LOG_LEVELS.ERROR, 'アクティブなプロンプトバージョンが設定されていません。');
+            // process.exit(1) を削除し、サーバーを落とさずエラー状態を維持
+            promptTemplate = '';
+            return;
         }
-
+        const versionId = activeDoc.data().activeVersionId;
+        // prompt_versionsから該当バージョンのデータを取得
+        const versionDoc = await db.collection('prompt_versions').doc(versionId).get();
+        if (!versionDoc.exists) {
+            logger(LOG_LEVELS.ERROR, '指定されたプロンプトバージョンが見つかりません。', { versionId });
+            // process.exit(1) を削除し、サーバーを落とさずエラー状態を維持
+            promptTemplate = '';
+            return;
+        }
+        const p = versionDoc.data();
         // --- プロンプト組み立てロジック ---
         let finalPrompt = "";
         
@@ -150,9 +246,16 @@ async function loadAndBuildPrompt() {
         }
         
         if (p.policies) {
-             finalPrompt += `#### 各種規約
-- **貸渡約款**: ${p.policies.termsContent || ''}\n
-- **プライバシーポリシー**: ${p.policies.privacyPolicyContent || ''}\n\n`;
+             finalPrompt += `#### 各種規約\n`;
+             finalPrompt += `- **貸渡約款**: ${p.policies.termsContent || ''}`;
+             if (p.links?.link_terms) {
+                 finalPrompt += `\n  - [貸渡約款ページ](${p.links.link_terms})`;
+             }
+             finalPrompt += `\n- **プライバシーポリシー**: ${p.policies.privacyPolicyContent || ''}`;
+             if (p.links?.link_privacy) {
+                 finalPrompt += `\n  - [プライバシーポリシーページ](${p.links.link_privacy})`;
+             }
+             finalPrompt += `\n\n`;
         }
 
         if (p.bot_control) {
@@ -162,11 +265,11 @@ async function loadAndBuildPrompt() {
         }
 
         promptTemplate = finalPrompt;
-        logger(LOG_LEVELS.INFO, '構造化されたプロンプトをFirestoreから正常に読み込み、組み立てました。');
-
+        logger(LOG_LEVELS.INFO, 'アクティブなプロンプトバージョンを正常に読み込み、組み立てました。');
     } catch (error) {
-        logger(LOG_LEVELS.ERROR, 'Firestoreからのプロンプト読み込み・組み立て中にエラーが発生しました:', { error: error.message, stack: error.stack });
-        process.exit(1);
+        logger(LOG_LEVELS.ERROR, 'アクティブなプロンプトバージョン読み込み・組み立て中にエラーが発生しました:', { error: error.message, stack: error.stack });
+        // process.exit(1) を削除し、サーバーを落とさずエラー状態を維持
+        promptTemplate = '';
     }
 }
 // ★★★★★ 修正ここまで ★★★★★
@@ -179,7 +282,6 @@ const apiLimiter = rateLimit({
     message: { reply: 'リクエストが多すぎます。少し時間をおいてから再度お試しください。', source: 'system' }
 });
 
-app.use(express.json());
 app.use('/api/chat', apiLimiter);
 app.use('/editor', express.static(path.join(__dirname, 'prompt-editor')));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -276,6 +378,53 @@ app.post('/api/chat', async (req, res) => {
         res.status(500).json({ reply: 'AIとの通信中にエラーが発生しました。', source: 'system' });
     }
 });
+
+// ★★★★★ アクティブプロンプトバージョン取得API ★★★★★
+/**
+ * アクティブなプロンプトバージョンのデータを返すAPI
+ * GET /api/get_active_prompt_version
+ * return: { activeVersionId, promptData, version, createdAt, editor }
+ */
+app.get('/api/get_active_prompt_version', async (req, res) => {
+    try {
+        const db = admin.firestore();
+        const activeDoc = await db.collection('prompts').doc('active').get();
+        if (!activeDoc.exists || !activeDoc.data().activeVersionId) {
+            return res.status(404).json({ error: 'アクティブバージョンが設定されていません' });
+        }
+        const activeVersionId = activeDoc.data().activeVersionId;
+        const versionDoc = await db.collection('prompt_versions').doc(activeVersionId).get();
+        if (!versionDoc.exists) {
+            return res.status(404).json({ error: 'アクティブバージョンのデータが見つかりません' });
+        }
+        const data = versionDoc.data();
+        res.json({
+            activeVersionId,
+            promptData: {
+                bot_personality: data.bot_personality || {},
+                bot_control: data.bot_control || {},
+                company_info: data.company_info || {},
+                qna: data.qna || {},
+                links: data.links || {},
+                vehicle_zil: data.vehicle_zil || {},
+                vehicle_crea: data.vehicle_crea || {},
+                vehicle_common: data.vehicle_common || {},
+                pricing: data.pricing || {},
+                procedures: data.procedures || {},
+                policies: data.policies || {},
+                preparation: data.preparation || {},
+                recommendations: data.recommendations || {}
+            },
+            version: data.version,
+            createdAt: data.createdAt,
+            editor: data.editor
+        });
+    } catch (error) {
+        logger(LOG_LEVELS.ERROR, '/api/get_active_prompt_version でエラー', { error: error.message });
+        res.status(500).json({ error: '取得に失敗しました' });
+    }
+});
+// ★★★★★ ここまで追加 ★★★★★
 
 async function startServer() {
     await loadAndBuildPrompt();
