@@ -149,14 +149,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         if (sender === 'bot') {
             // ★★★★★ 修正点 ★★★★★
-            // AIからの応答の場合、MarkdownリンクをHTMLの<a>タグに変換する
-            // 正規表現で [テキスト](URL) という形式を探して置換します
-            const htmlText = text.replace(
+            // MarkdownリンクをHTMLの<a>タグに変換
+            const htmlWithLinks = text.replace(
                 /\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g,
                 '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
             );
-            pElement.innerHTML = htmlText;
-            // ★★★★★★★★★★★★★★★
+            // DOMPurifyでサニタイズ処理を追加
+            const cleanHtml = DOMPurify.sanitize(htmlWithLinks);
+            pElement.innerHTML = cleanHtml;
         } else {
             // ユーザー入力は安全のためtextContentを使い、テキストとしてそのまま表示
             pElement.textContent = text;

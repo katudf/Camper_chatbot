@@ -12,8 +12,10 @@
   "description": "",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
+    "dompurify": "^3.2.6",
     "dotenv": "^16.5.0",
     "express": "^5.1.0",
-    "firebase": "^10.12.2"
+    "express-rate-limit": "^7.3.1",
+    "firebase-admin": "^12.7.0"
   }
 }

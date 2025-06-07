@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>プロンプト編集ツール</title>
+    <link rel="stylesheet" href="editor.css">
+</head>
+<body>
+    <div class="container">
+        <h1>キャン太 プロンプト編集ツール</h1>
+
+        <!-- ログインフォーム -->
+        <div id="login-container">
+            <h2>ログイン</h2>
+            <input type="email" id="login-email" placeholder="メールアドレス" required>
+            <input type="password" id="login-password" placeholder="パスワード" required>
+            <button id="login-button">ログイン</button>
+            <p id="login-error" class="error-message"></p>
+        </div>
+
+        <!-- 編集フォーム -->
+        <div id="editor-container" style="display: none;">
+            <div class="auth-info">
+                <span id="user-email"></span>
+                <button id="logout-button">ログアウト</button>
+            </div>
+
+            <form id="prompt-form">
+                <!-- ボットの基本設定 -->
+                <fieldset>
+                    <legend>🤖 ボットの基本設定</legend>
+                    <label for="roleDescription">役割・性格:</label>
+                    <textarea id="roleDescription" rows="5"></textarea>
+                    <label for="communicationPrinciples">コミュニケーション原則:</label>
+                    <textarea id="communicationPrinciples" rows="5"></textarea>
+                </fieldset>
+                
+                <!-- Q&A形式の知識ベース -->
+                <fieldset>
+                    <legend>❓ Q&A形式の知識ベース</legend>
+                    <p class="description">特定の質問に決まった回答をさせたい場合に入力します。<br>一行に「質問文:::(コロン3つ)回答文」の形式で記述してください。</p>
+                    <textarea id="qnaContent" rows="8"></textarea>
+                </fieldset>
+
+                <!-- 会社情報 -->
+                <fieldset>
+                    <legend>🏢 会社情報</legend>
+                    <label for="companyName">会社名 (ユーザー向け):</label>
+                    <input type="text" id="companyName">
+                    <label for="location">所在地:</label>
+                    <input type="text" id="location">
+                    <label for="phone">電話番号:</label>
+                    <input type="text" id="phone">
+                     <label for="businessHours">営業時間:</label>
+                    <input type="text" id="businessHours">
+                    <label for="holidays">定休日:</label>
+                    <input type="text" id="holidays">
+                    <label for="appealPoints">アピールポイント:</label>
+                    <textarea id="appealPoints" rows="3"></textarea>
+                    <label for="campaignInfo">キャンペーン情報:</label>
+                    <textarea id="campaignInfo" rows="3"></textarea>
+                </fieldset>
+                
+                <!-- 車両情報 -->
+                <fieldset>
+                    <legend>🚐 車両情報</legend>
+                    <div class="vehicle-section">
+                        <h3>ZIL (ジル) 520</h3>
+                        <label for="vehicle_zil_features">特徴・説明:</label>
+                        <textarea id="vehicle_zil_features" rows="4"></textarea>
+                    </div>
+                     <div class="vehicle-section">
+                        <h3>CREA (クレア) 5.3X</h3>
+                        <label for="vehicle_crea_features">特徴・説明:</label>
+                        <textarea id="vehicle_crea_features" rows="4"></textarea>
+                    </div>
+                    <div class="vehicle-section">
+                        <h3>車両共通設備</h3>
+                        <label for="commonEquipment">基本設備:</label>
+                        <textarea id="commonEquipment" rows="5"></textarea>
+                        <label for="otherEquipment">その他特記事項（電気設備など）:</label>
+                        <textarea id="otherEquipment" rows="5"></textarea>
+                    </div>
+                </fieldset>
+                
+                 <!-- 持ち物・準備 (新規追加) -->
+                <fieldset>
+                    <legend>🎒 持ち物・準備</legend>
+                    <label for="essentialItems">キャンピングカー必須アイテム:</label>
+                    <textarea id="essentialItems" rows="5" placeholder="例: 寝袋、調理器具、着替え..."></textarea>
+                    <label for="convenientItems">あると便利なアイテム:</label>
+                    <textarea id="convenientItems" rows="5" placeholder="例: ランタン、延長コード、虫除けスプレー..."></textarea>
+                </fieldset>
+
+                <!-- おすすめ情報 (新規追加) -->
+                <fieldset>
+                    <legend>🌟 おすすめ情報</legend>
+                    <label for="overnightSpots">車中泊スポット案内:</label>
+                    <textarea id="overnightSpots" rows="6" placeholder="例: ○○オートキャンプ場 - 電源サイトがあり、初心者におすすめです..."></textarea>
+                </fieldset>
+
+                 <!-- 料金情報 -->
+                <fieldset>
+                    <legend>💰 料金情報</legend>
+                    <label for="pricing_notes">料金に関する注意書き:</label>
+                    <textarea id="pricing_notes" rows="2"></textarea>
+                    <label for="longTermDiscounts">長期割引:</label>
+                    <textarea id="longTermDiscounts" rows="4"></textarea>
+                    <label for="cancellationPolicy">キャンセル料:</label>
+                    <textarea id="cancellationPolicy" rows="4"></textarea>
+                     <label for="paymentMethods">支払い方法:</label>
+                    <input type="text" id="paymentMethods">
+                </fieldset>
+                
+                <!-- 手続き・ルール -->
+                <fieldset>
+                    <legend>📝 手続き・ルール</legend>
+                    <label for="checkoutFlow">貸出当日の流れ:</label>
+                    <textarea id="checkoutFlow" rows="4"></textarea>
+                    <label for="checkinFlow">返却時の流れ:</label>
+                    <textarea id="checkinFlow" rows="4"></textarea>
+                    <label for="usageManners">使用マナー:</label>
+                    <textarea id="usageManners" rows="4"></textarea>
+                    <label for="prohibitedItems">禁止事項:</label>
+                    <textarea id="prohibitedItems" rows="4"></textarea>
+                </fieldset>
+                
+                <!-- 緊急時・ポリシー -->
+                 <fieldset>
+                    <legend>📜 緊急時・各種規約</legend>
+                    <label for="accidentResponse">事故対応:</label>
+                    <textarea id="accidentResponse" rows="4"></textarea>
+                    <label for="termsContent">貸渡約款:</label>
+                    <textarea id="termsContent" rows="6" placeholder="貸渡約款の全文または要約をここに記述..."></textarea>
+                    <label for="privacyPolicyContent">プライバシーポリシー:</label>
+                    <textarea id="privacyPolicyContent" rows="6" placeholder="プライバシーポリシーの全文または要約をここに記述..."></textarea>
+                </fieldset>
+                
+                <!-- 関連リンク集 -->
+                <fieldset>
+                    <legend>🔗 関連リンク集</legend>
+                    <p class="description">プロンプト内で参照されるURLを一元管理します。</p>
+                    <label for="link_instagram">Instagram URL:</label>
+                    <input type="url" id="link_instagram" placeholder="https://www.instagram.com/...">
+                    <label for="link_line">LINE公式アカウントURL:</label>
+                    <input type="url" id="link_line" placeholder="https://line.me/...">
+                    <label for="link_zil">ZIL詳細ページURL:</label>
+                    <input type="url" id="link_zil">
+                    <label for="link_crea">CREA詳細ページURL:</label>
+                    <input type="url" id="link_crea">
+                    <label for="link_news">お知らせ・イベント情報URL:</label>
+                    <input type="url" id="link_news">
+                    <label for="link_pricing">料金案内ページURL:</label>
+                    <input type="url" id="link_pricing">
+                    <label for="link_booking">予約フォームURL:</label>
+                    <input type="url" id="link_booking">
+                     <label for="link_checkoutFlow">貸出当日の流れURL:</label>
+                    <input type="url" id="link_checkoutFlow">
+                    <label for="link_checkinFlow">返却時の流れURL:</label>
+                    <input type="url" id="link_checkinFlow">
+                     <label for="link_accidentResponse">事故対応URL:</label>
+                    <input type="url" id="link_accidentResponse">
+                </fieldset>
+
+                <!-- AIの挙動制御 -->
+                <fieldset>
+                    <legend>🧠 AIの挙動制御</legend>
+                    <label for="inappropriateQuestionResponse">不適切な質問への対応方針:</label>
+                    <textarea id="inappropriateQuestionResponse" rows="4"></textarea>
+                    <label for="negativePrompt">ネガティブプロンプト (AIに言ってほしくないこと):</label>
+                    <textarea id="negativePrompt" rows="3"></textarea>
+                </fieldset>
+
+                <button type="submit" id="save-button">変更を保存</button>
+                <p id="save-status" class="status-message"></p>
+            </form>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="editor.js"></script>
+</body>
+</html>
