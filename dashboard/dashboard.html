@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>会話分析ダッシュボード</title>
+    <link rel="stylesheet" href="dashboard.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+</head>
+<body>
+    <div class="dashboard-container">
+        <h1>会話分析ダッシュボード</h1>
+        <div id="login-container">
+            <input type="email" id="login-email" placeholder="メールアドレス" required>
+            <input type="password" id="login-password" placeholder="パスワード" required>
+            <button id="login-button">ログイン</button>
+            <p id="login-error" class="error-message"></p>
+        </div>
+        <div id="dashboard-content" style="display:none;">
+            <div class="dashboard-section">
+                <h2>よくある質問ランキング</h2>
+                <canvas id="faqChart"></canvas>
+            </div>
+            <div class="dashboard-section">
+                <h2>時間帯別 利用状況</h2>
+                <canvas id="hourlyChart"></canvas>
+            </div>
+            <div class="dashboard-section">
+                <h2>日別 利用状況</h2>
+                <canvas id="dailyChart"></canvas>
+            </div>
+            <div class="dashboard-section">
+                <h2>AIがうまく答えられなかった質問</h2>
+                <ul id="unansweredList"></ul>
+            </div>
+        </div>
+    </div>
+    <!-- Firebase SDK（CDN） -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
+    <script src="dashboard.js"></script>
+</body>
+</html>

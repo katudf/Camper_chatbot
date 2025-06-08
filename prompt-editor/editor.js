@@ -143,11 +143,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 });
             }
+            // バージョンコメント取得
+            const versionComment = document.getElementById('versionComment')?.value || '';
             // API経由で保存
             const res = await fetch('/api/save_prompt_version', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ promptData, editor: auth.currentUser ? auth.currentUser.email : 'unknown' })
+                body: JSON.stringify({ promptData, editor: auth.currentUser ? auth.currentUser.email : 'unknown', comment: versionComment })
             });
             if (!res.ok) throw new Error('サーバー保存に失敗しました');
             saveStatusP.textContent = '正常に保存されました！';
@@ -235,11 +237,13 @@ document.addEventListener('DOMContentLoaded', () => {
             data.versions.forEach(v => {
                 const createdAt = v.createdAt && v.createdAt._seconds ?
                     new Date(v.createdAt._seconds * 1000).toLocaleString('ja-JP') : 'N/A';
+                const commentText = v.comment ? `<div class='version-comment'>💬 ${v.comment}</div>` : '';
                 const item = document.createElement('div');
                 item.className = 'version-history-item';
                 item.innerHTML = `
                     <b>v${v.version}</b>（${createdAt}） 編集者: ${v.editor || '不明'}
                     <button data-version-id="${v.id}" class="restore-version-btn">このバージョンを復元</button>
+                    ${commentText}
                 `;
                 versionHistoryList.appendChild(item);
             });

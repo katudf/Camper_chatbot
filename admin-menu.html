@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理メニュー</title>
+    <link rel="stylesheet" href="public/style.css">
+    <style>
+        .admin-menu-container {
+            max-width: 480px;
+            margin: 60px auto;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+            padding: 40px 32px 32px 32px;
+            text-align: center;
+        }
+        .admin-menu-container h1 {
+            margin-bottom: 32px;
+        }
+        .admin-menu-btn {
+            display: block;
+            width: 100%;
+            margin: 18px 0;
+            padding: 18px;
+            font-size: 1.2em;
+            background: #4e73df;
+            color: #fff;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .admin-menu-btn:hover {
+            background: #2e59d9;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-menu-container">
+        <h1>管理メニュー</h1>
+        <button class="admin-menu-btn" onclick="location.href='prompt-editor/editor.html'">プロンプト編集画面</button>
+        <button class="admin-menu-btn" onclick="location.href='dashboard/dashboard.html'">会話分析ダッシュボード</button>
+        <button class="admin-menu-btn" onclick="location.href='index.html'">ユーザー向けチャット画面</button>
+    </div>
+</body>
+</html>

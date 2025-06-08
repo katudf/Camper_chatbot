@@ -65,7 +65,7 @@ app.post('/api/save_prompt_version', async (req, res) => {
     console.log('save_prompt_version req.body:', req.body); // 受信内容を確認
     try {
         const db = admin.firestore();
-        const { promptData, editor } = req.body;
+        const { promptData, editor, comment } = req.body;
         if (!promptData) return res.status(400).json({ error: 'promptDataがありません' });
         // 最新バージョン番号を取得
         const versionsSnap = await db.collection('prompt_versions').orderBy('version', 'desc').limit(1).get();
@@ -79,7 +79,8 @@ app.post('/api/save_prompt_version', async (req, res) => {
             ...promptData,
             version: newVersion,
             createdAt: now,
-            editor: editor || 'unknown'
+            editor: editor || 'unknown',
+            comment: comment || ''
         });
         // promptsコレクションにアクティブバージョンIDを保存
         await db.collection('prompts').doc('active').set({
@@ -283,8 +284,9 @@ const apiLimiter = rateLimit({
 });
 
 app.use('/api/chat', apiLimiter);
-app.use('/editor', express.static(path.join(__dirname, 'prompt-editor')));
+app.use('/prompt-editor', express.static(path.join(__dirname, 'prompt-editor')));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/dashboard', express.static(path.join(__dirname, 'dashboard')));
 app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
 
 // ★★★★★ 新しいAPIエンドポイントを追加 ★★★★★
@@ -426,6 +428,10 @@ app.get('/api/get_active_prompt_version', async (req, res) => {
 });
 // ★★★★★ ここまで追加 ★★★★★
 
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'admin-menu.html'));
+});
+
 async function startServer() {
     await loadAndBuildPrompt();
 
@@ -433,6 +439,7 @@ async function startServer() {
         logger(LOG_LEVELS.INFO, `サーバーが http://localhost:${port} で起動しました`);
         logger(LOG_LEVELS.INFO, `チャットボットは http://localhost:${port} で利用できます。`);
         logger(LOG_LEVELS.INFO, `プロンプトエディタは http://localhost:${port}/editor/editor.html で利用できます。`);
+        logger(LOG_LEVELS.INFO, `ダッシュボードは http://localhost:3000/dashboard/dashboard.html で利用できます。`);
     }).on('error', (err) => {
         logger(LOG_LEVELS.ERROR, 'サーバー起動時に致命的なエラーが発生しました:', { error: err.message });
         process.exit(1);
