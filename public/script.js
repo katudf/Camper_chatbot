@@ -98,13 +98,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    sendButton.addEventListener('click', handleUserSubmit);
+    sendButton.addEventListener('click', () => handleUserSubmit(userInput, sendButton));
     userInput.addEventListener('keypress', (event) => {
         if (event.key === 'Enter' && !sendButton.disabled) {
-            handleUserSubmit();
+            handleUserSubmit(userInput, sendButton);
         }
     });
-    userInput.addEventListener('input', updateSendButtonState);
+    userInput.addEventListener('input', () => updateSendButtonState(userInput, sendButton));
 
     async function sendMessage(messageText) {
         if (!messageText) return;
@@ -201,11 +201,39 @@ document.addEventListener('DOMContentLoaded', () => {
             messageToRemove.remove();
         }
     }
+
+    // script.js に追加
+    async function checkServerStatus() {
+        const connectingMessage = document.getElementById('connecting-message');
+        const greetingContent = document.getElementById('greeting-content');
+        const userInput = document.getElementById('userInput');
+
+        try {
+            // Renderサーバーのヘルスチェックエンドポイントを叩く
+            const response = await fetch('https://camper-chatbot.onrender.com/api/health');
+
+            // 応答が正常（200 OK）でなければエラーとして扱う
+            if (!response.ok) {
+                throw new Error(`Server responded with status: ${response.status}`);
+            }
+
+            // 成功した場合
+            connectingMessage.style.display = 'none'; // 「接続中」を非表示
+            greetingContent.style.display = 'block'; // あいさつ文とボタンを表示
+            createShortcutButtons(); // ショートカットボタンもここで生成
+            userInput.disabled = false; // 入力欄を有効化
+            userInput.focus();
+            updateSendButtonState();
+
+        } catch (error) {
+            // 失敗した場合
+            console.error('Server check failed:', error);
+            connectingMessage.textContent = 'サーバーに接続できませんでした。時間をおいてページを再読み込みしてください。';
+            // ユーザー入力は無効のまま
+        }
+    }
     
     // 初期化処理
     // fetchAndUpdateQuota(); // 初期表示時に呼び出すか検討。現状はユーザー送信後に呼び出される
-    createShortcutButtons();
-    userInput.disabled = false;
-    userInput.focus();
-    updateSendButtonState();
+    checkServerStatus(); // ★★★★★ サーバー接続確認処理を呼び出す
 });

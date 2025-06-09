@@ -437,6 +437,17 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'admin-menu.html'));
 });
 
+// server.js に追加
+
+/**
+ * サーバーのヘルスチェック用エンドポイント
+ * GET /api/health
+ */
+app.get('/api/health', (req, res) => {
+  // サーバーが正常に動作していることを示すステータス200とJSONを返す
+  res.status(200).json({ status: 'ok' });
+});
+
 async function startServer() {
     await loadAndBuildPrompt();
 

@@ -21,10 +21,12 @@
             </div>
         </div>
         <div class="chat-messages" id="chatMessages">
-            <div class="message bot-message">
-                <p>こんにちは！キャンピングカーに関するご質問にAIがお答えします。「キャン太」とお呼びくださいね🚐 何かお手伝いできることはありますか？</p>
-                <div class="shortcut-buttons-container" id="shortcutButtons">
-                    <!-- JavaScriptでボタンをここに追加します -->
+            <div class="message bot-message" id="initial-bot-message">
+                <p id="connecting-message">サーバーに接続しています...</p>
+                <div id="greeting-content" style="display: none;">
+                    <p>こんにちは！キャンピングカーに関するご質問にAIがお答えします。「キャン太」とお呼びくださいね🚐 何かお手伝いできることはありますか？</p>
+                    <div class="shortcut-buttons-container" id="shortcutButtons">
+                    </div>
                 </div>
             </div>
         </div>
