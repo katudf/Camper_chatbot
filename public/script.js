@@ -78,7 +78,7 @@ async function submitMessage(messageText) {
     }, 3000);
 
     // 「考えています」メッセージの表示
-    const loadingMessageBaseText = 'キャン太が考えています';
+    const loadingMessageBaseText = '考えています';
     const loadingMessageElement = addMessageToChat(loadingMessageBaseText + '.', 'bot', true);
     let loadingDots = 1;
     const loadingIntervalId = setInterval(() => {
