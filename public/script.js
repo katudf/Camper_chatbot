@@ -3,7 +3,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const userInput = document.getElementById('userInput');
     const sendButton = document.getElementById('sendButton');
     const shortcutButtonsContainer = document.getElementById('shortcutButtons');
-    const remainingQuotaValueElement = document.getElementById('remainingQuotaValue');
 
     let loadingIntervalId = null;
     let loadingDots = 0;
@@ -29,23 +28,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             shortcutButtonsContainer.appendChild(button);
         });
-    }
-
-    async function fetchAndUpdateQuota() {
-        try {
-            const response = await fetch('https://camper-chatbot.onrender.com/api/chat');
-            if (!response.ok) {
-                if (remainingQuotaValueElement) remainingQuotaValueElement.textContent = '取得エラー';
-                return;
-            }
-            const data = await response.json();
-            if (remainingQuotaValueElement) {
-                remainingQuotaValueElement.textContent = data.remaining;
-            }
-        } catch (error) {
-            if (remainingQuotaValueElement) remainingQuotaValueElement.textContent = '表示エラー';
-            console.error('API利用状況の取得エラー:', error);
-        }
     }
 
     function updateSendButtonState() {

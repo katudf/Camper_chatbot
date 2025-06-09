@@ -23,7 +23,7 @@ body {
 }
 
 .chat-header {
-    background-color: #3B82F6; /* ★ メインカラー (Tailwind blue-500風) */
+    background-color: #26ae10; /* ★ メインカラー (Tailwind blue-500風) */
     color: white;
     padding: 16px 12px; /* ★ パディング調整 */
     text-align: center;
@@ -133,13 +133,13 @@ body {
 }
 .chat-input-area input[type="text"]:focus {
     outline: none;
-    border-color: #3B82F6; /* ★ フォーカス時の枠線色 */
+    border-color: #26ae10; /* ★ フォーカス時の枠線色 */
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.3); /* ★ フォーカス時の影 */
 }
 
 .chat-input-area button {
     padding: 10px 15px;
-    background-color: #3B82F6; /* ★ メインカラー */
+    background-color: #26ae10; /* ★ メインカラー */
     color: white;
     border: none;
     border-radius: 20px; /* ★ 角丸 */
