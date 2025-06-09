@@ -32,7 +32,12 @@ app.use(express.json()); // これを最初に移動
 
 // --- Firebase Admin SDKの初期化 ---
 try {
-    const serviceAccount = require('./service-account-key.json');
+    const serviceAccountPath = process.env.SERVICE_ACCOUNT_KEY_PATH;
+    if (!serviceAccountPath) {
+        logger(LOG_LEVELS.ERROR, '環境変数 SERVICE_ACCOUNT_KEY_PATH が設定されていません。');
+        process.exit(1);
+    }
+    const serviceAccount = require(serviceAccountPath);
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
     });
