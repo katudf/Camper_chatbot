@@ -37,6 +37,24 @@
                 <h2>AIがうまく答えられなかった質問</h2>
                 <ul id="unansweredList"></ul>
             </div>
+            <div class="dashboard-section">
+                <h2>最新の会話ログ</h2>
+                <div class="table-container">
+                    <table id="conversation-log-table">
+                        <thead>
+                            <tr>
+                                <th>日時</th>
+                                <th>ユーザーID</th>
+                                <th>質問</th>
+                                <th>回答</th>
+                            </tr>
+                        </thead>
+                        <tbody id="conversation-log-body">
+                            <!-- データはJavaScriptで挿入されます -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
     <!-- Firebase SDK（CDN） -->

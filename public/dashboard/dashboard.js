@@ -59,6 +59,7 @@ async function loadAndRenderDashboard() {
     renderHourlyChart(logs);
     renderDailyChart(logs);
     renderUnansweredList(logs);
+    renderConversationTable(logs); // ★★★★★ 追加 ★★★★★
 }
 
 function renderFaqRanking(logs) {
@@ -153,4 +154,33 @@ function renderUnansweredList(logs) {
     });
     const sorted = Object.entries(freq).sort((a, b) => b[1] - a[1]).slice(0, 10);
     list.innerHTML = sorted.length ? sorted.map(x => `<li>${x[0]} <span style='color:#888'>(×${x[1]})</span></li>`).join('') : '<li>該当なし</li>';
+}
+
+// public/dashboard/dashboard.js に追加
+
+function renderConversationTable(logs) {
+    const tableBody = document.getElementById('conversation-log-body');
+    if (!tableBody) return;
+
+    // テーブルの中身を一度空にする
+    tableBody.innerHTML = '';
+
+    // 取得したログを1行ずつテーブルに追加
+    // 最新のログを上に表示するため、limitで取得したものをそのまま使う（既に降順）
+    logs.slice(0, 100).forEach(log => { // 表示件数を100件に制限（必要に応じて調整）
+        const row = tableBody.insertRow();
+
+        // タイムスタンプのフォーマット
+        let formattedTimestamp = 'N/A';
+        if (log.timestamp && log.timestamp.toDate) {
+            formattedTimestamp = log.timestamp.toDate().toLocaleString('ja-JP');
+        } else if (log.timestamp && log.timestamp._seconds) {
+            formattedTimestamp = new Date(log.timestamp._seconds * 1000).toLocaleString('ja-JP');
+        }
+
+        row.insertCell(0).textContent = formattedTimestamp;
+        row.insertCell(1).textContent = log.userId || '';
+        row.insertCell(2).textContent = log.question || '';
+        row.insertCell(3).textContent = log.answer || '';
+    });
 }

@@ -41,3 +41,35 @@ canvas {
     font-size: 0.95em;
     margin-top: 8px;
 }
+
+/* public/dashboard/dashboard.css に追加 */
+
+.table-container {
+    max-height: 500px;
+    overflow-y: auto;
+    border: 1px solid #e0e0e0;
+    border-radius: 6px;
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9em;
+}
+th, td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: left;
+    vertical-align: top;
+}
+th {
+    background-color: #f7f7fa;
+    position: sticky;
+    top: 0;
+}
+tbody tr:hover {
+    background-color: #f9f9f9;
+}
+td:nth-child(1) { width: 15%; }
+td:nth-child(2) { width: 15%; word-break: break-all; }
+td:nth-child(3) { width: 35%; }
+td:nth-child(4) { width: 35%; }
