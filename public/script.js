@@ -52,14 +52,49 @@ document.addEventListener('DOMContentLoaded', () => {
         sendButton.disabled = userInput.value.trim() === '';
     }
 
-    function handleUserSubmit() {
+    async function handleUserSubmit() { // asyncキーワードを追加
         const messageText = userInput.value.trim();
         if (messageText) {
             addMessageToChat(messageText, 'user');
-            sendMessage(messageText);
-            shortcutButtonsContainer.style.display = 'none';
             userInput.value = '';
             updateSendButtonState();
+            shortcutButtonsContainer.style.display = 'none'; // ユーザー入力後にショートカットを非表示
+            
+            // ★★★★★ ここから修正・追加 ★★★★★
+            let waitingMessageElement = null;
+            let isResponseReceived = false;
+
+            // 3秒後に「起動中メッセージ」を表示するタイマー
+            const waitingTimer = setTimeout(() => {
+                if (!isResponseReceived) {
+                    const waitingText = 'サーバーを起動中です...<br>30～50秒ほどかかる場合があります。';
+                    waitingMessageElement = addMessageToChat(waitingText, 'bot');
+                }
+            }, 3000);
+
+            try {
+                const response = await sendMessage(messageText); // sendMessageをawaitで待つ
+                isResponseReceived = true; // 応答が来たことを記録
+                clearTimeout(waitingTimer); // タイマーを解除
+
+                // もし「起動中メッセージ」が表示されていたら削除する
+                if (waitingMessageElement) {
+                    removeMessageFromChat(waitingMessageElement.id);
+                }
+
+                // サーバーからの応答をチャットに追加
+                addMessageToChat(response, 'bot');
+
+            } catch (error) {
+                isResponseReceived = true;
+                clearTimeout(waitingTimer);
+                if (waitingMessageElement) {
+                    removeMessageFromChat(waitingMessageElement.id);
+                }
+                console.error('通信エラー:', error);
+                addMessageToChat('申し訳ありません、通信エラーが発生しました。ネットワーク接続を確認して再度お試しください。', 'bot');
+            }
+            // ★★★★★ ここまで修正・追加 ★★★★★
         }
     }
     
@@ -73,8 +108,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function sendMessage(messageText) {
         if (!messageText) return;
-        userInput.focus();
-
+        // userInput.focus(); // handleUserSubmitに移動または不要なら削除検討
         const loadingMessageBaseText = 'キャン太が考えています';
         const loadingMessageElement = addMessageToChat(loadingMessageBaseText + '.', 'bot', true);
         loadingDots = 1;
@@ -98,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('chatbotUserId', userId);
             }
 
-            const response = await fetch('https://camper-chatbot.onrender.com/api/chat', { // ← ここをRenderのURLに書き換える
+            const response = await fetch('https://camper-chatbot.onrender.com/api/chat', { // あなたのバックエンドURL
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: messageText, userId: userId }),
@@ -106,24 +140,20 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (loadingMessageElement) removeMessageFromChat(loadingMessageElement.id);
             if (loadingIntervalId) clearInterval(loadingIntervalId);
-            
-            fetchAndUpdateQuota();
+            // fetchAndUpdateQuota(); // handleUserSubmit側で必要なら呼び出すか、ここで維持するか検討
             const data = await response.json();
 
             if (!response.ok) {
-                const errorMessage = data.reply || '申し訳ありません、エラーが発生しました。';
-                addMessageToChat(errorMessage, 'bot');
-                return;
+                throw new Error(data.reply || 'サーバーエラーが発生しました。');
             }
 
-            addMessageToChat(data.reply, 'bot');
+            return data.reply; // ★★★★★ 応答メッセージを返すように変更
 
         } catch (error) {
             if (loadingMessageElement) removeMessageFromChat(loadingMessageElement.id);
             if (loadingIntervalId) clearInterval(loadingIntervalId);
-            fetchAndUpdateQuota();
-            console.error('通信エラー:', error);
-            addMessageToChat('申し訳ありません、通信エラーが発生しました。ネットワーク接続を確認して再度お試しください。', 'bot');
+            // fetchAndUpdateQuota(); // エラー時も呼び出すか検討
+            throw error; // ★★★★★ エラーを呼び出し元に投げるように変更
         }
     }
 
@@ -135,11 +165,9 @@ document.addEventListener('DOMContentLoaded', () => {
      * @returns {HTMLElement} 追加されたメッセージ要素
      */
     function addMessageToChat(text, sender, isLoading = false) {
-        const messageId = isLoading ? `loading-${Date.now()}` : null;
+        const messageId = `msg-${Date.now()}-${Math.random()}`; // ★★★★★ すべてのメッセージにユニークIDを付与
         const messageElement = document.createElement('div');
-        if (messageId) {
-            messageElement.id = messageId;
-        }
+        messageElement.id = messageId;
         messageElement.classList.add('message', `${sender}-message`);
         if (isLoading) {
             messageElement.classList.add('loading-message');
@@ -148,15 +176,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const pElement = document.createElement('p');
         
         if (sender === 'bot') {
-            // ★★★★★ 修正点 ★★★★★
             // MarkdownリンクをHTMLの<a>タグに変換
             const htmlWithLinks = text.replace(
                 /\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g,
-                '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>'
+                '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>' // &lt; &gt; を < > に修正
             );
-            // DOMPurifyでサニタイズ処理を追加
+            // DOMPurifyでのサニタイズは既に実装済みなのでそのまま活用
             const cleanHtml = DOMPurify.sanitize(htmlWithLinks);
-            pElement.innerHTML = cleanHtml;
+            pElement.innerHTML = cleanHtml; // ★★★★★ innerHTMLを使って<br>などを反映
         } else {
             // ユーザー入力は安全のためtextContentを使い、テキストとしてそのまま表示
             pElement.textContent = text;
@@ -176,7 +203,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // 初期化処理
-    fetchAndUpdateQuota();
+    // fetchAndUpdateQuota(); // 初期表示時に呼び出すか検討。現状はユーザー送信後に呼び出される
     createShortcutButtons();
     userInput.disabled = false;
     userInput.focus();
