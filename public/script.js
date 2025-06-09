@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 localStorage.setItem('chatbotUserId', userId);
             }
 
-            const response = await fetch('/api/chat', {
+            const response = await fetch('https://camper-chatbot.onrender.com/api/chat', { // ← ここをRenderのURLに書き換える
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ message: messageText, userId: userId }),

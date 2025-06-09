@@ -95,7 +95,7 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log("Loading prompt data from active prompt version (via API)...");
         try {
             // 新APIでアクティブバージョンとデータを取得
-            const res = await fetch('/api/get_active_prompt_version');
+            const res = await fetch('https://camper-chatbot.onrender.com/api/get_active_prompt_version');
             if (!res.ok) throw new Error('アクティブバージョンの取得に失敗しました');
             const data = await res.json();
             const promptData = data.promptData;
@@ -146,7 +146,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // バージョンコメント取得
             const versionComment = document.getElementById('versionComment')?.value || '';
             // API経由で保存
-            const res = await fetch('/api/save_prompt_version', {
+            const res = await fetch('https://camper-chatbot.onrender.com/api/save_prompt_version', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ promptData, editor: auth.currentUser ? auth.currentUser.email : 'unknown', comment: versionComment })
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
         exportButton.disabled = true;
 
         try {
-            const response = await fetch('/api/export_conversations');
+            const response = await fetch('https://camper-chatbot.onrender.com/api/export_conversations');
 
             if (!response.ok) {
                 const errorText = await response.text();
@@ -226,7 +226,7 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadVersionHistory() {
         versionHistoryList.innerHTML = '読み込み中...';
         try {
-            const res = await fetch('/api/prompt_versions');
+            const res = await fetch('https://camper-chatbot.onrender.com/api/prompt_versions');
             if (!res.ok) throw new Error('バージョン履歴の取得に失敗しました');
             const data = await res.json();
             if (!data.versions || data.versions.length === 0) {
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     btn.disabled = true;
                     btn.textContent = '復元中...';
                     try {
-                        const res = await fetch('/api/activate_prompt_version', {
+                        const res = await fetch('https://camper-chatbot.onrender.com/api/activate_prompt_version', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ versionId })
