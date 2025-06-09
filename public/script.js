@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function fetchAndUpdateQuota() {
         try {
-            const response = await fetch('/api/quota_status');
+            const response = await fetch('https://camper-chatbot.onrender.com/api/chat');
             if (!response.ok) {
                 if (remainingQuotaValueElement) remainingQuotaValueElement.textContent = '取得エラー';
                 return;
