@@ -50,7 +50,8 @@ document.addEventListener('DOMContentLoaded', () => {
         procedures: ['checkoutFlow', 'checkinFlow', 'usageManners', 'prohibitedItems', 'accidentResponse'],
         policies: ['termsContent', 'privacyPolicyContent'],
         preparation: ['essentialItems', 'convenientItems'],
-        recommendations: ['overnightSpots']
+        recommendations: ['overnightSpots'],
+        other: ['otherInfo']
     };
 
 

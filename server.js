@@ -270,6 +270,11 @@ async function loadAndBuildPrompt() {
 - **ネガティブプロンプト (禁止事項)**: ${p.bot_control.negativePrompt || ''}\n`;
         }
 
+        // --- その他 ---
+        if (p.other && p.other.otherInfo) {
+            finalPrompt += `\n### その他\n${p.other.otherInfo}\n`;
+        }
+
         promptTemplate = finalPrompt;
         logger(LOG_LEVELS.INFO, 'アクティブなプロンプトバージョンを正常に読み込み、組み立てました。');
     } catch (error) {
