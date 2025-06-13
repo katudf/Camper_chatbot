@@ -42,7 +42,11 @@ document.addEventListener('DOMContentLoaded', () => {
         bot_control: ['inappropriateQuestionResponse', 'negativePrompt'],
         company_info: ['companyName', 'location', 'phone', 'businessHours', 'holidays', 'appealPoints', 'campaignInfo'],
         qna: ['qnaContent'],
-        links: ['link_instagram', 'link_line', 'link_zil', 'link_crea', 'link_news', 'link_pricing', 'link_booking', 'link_checkoutFlow', 'link_checkinFlow', 'link_accidentResponse', 'link_terms', 'link_privacy'],
+        links: [
+            'link_instagram', 'link_line', 'link_zil', 'link_crea', 'link_news', 'link_pricing', 'link_booking',
+            'link_checkoutFlow', 'link_checkinFlow', 'link_accidentResponse', 'link_terms', 'link_privacy',
+            'link_carstay', 'link_other1', 'link_other2', 'link_other3', 'link_other4', 'link_other5'
+        ],
         vehicle_zil: ['vehicle_zil_features'],
         vehicle_crea: ['vehicle_crea_features'],
         vehicle_common: ['commonEquipment', 'otherEquipment'],

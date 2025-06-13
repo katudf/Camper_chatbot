@@ -205,7 +205,13 @@ async function loadAndBuildPrompt() {
 - **最新のキャンペーン情報**: ${p.company_info.campaignInfo || '現在、特別なキャンペーン情報はありません。'}
 - **お知らせ・イベント情報**: 詳細は[お知らせページ](${p.links?.link_news || ''})をご覧ください。
 - **Instagram**: [${p.links?.link_instagram || ''}](${p.links?.link_instagram || ''})
-- **LINE**: [${p.links?.link_line || ''}](${p.links?.link_line || ''})\n\n`;
+- **LINE**: [${p.links?.link_line || ''}](${p.links?.link_line || ''})
+- **Carstay**: [${p.links?.link_carstay || ''}](${p.links?.link_carstay || ''})
+- **その他1**: [${p.links?.link_other1 || ''}](${p.links?.link_other1 || ''})
+- **その他2**: [${p.links?.link_other2 || ''}](${p.links?.link_other2 || ''})
+- **その他3**: [${p.links?.link_other3 || ''}](${p.links?.link_other3 || ''})
+- **その他4**: [${p.links?.link_other4 || ''}](${p.links?.link_other4 || ''})
+- **その他5**: [${p.links?.link_other5 || ''}](${p.links?.link_other5 || ''})\n\n`;
         }
         
         if (p.vehicle_zil && p.vehicle_crea) {
