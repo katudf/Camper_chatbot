@@ -231,6 +231,12 @@ document.addEventListener('DOMContentLoaded', () => {
     async function loadVersionHistory() {
         versionHistoryList.innerHTML = '読み込み中...';
         try {
+            // アクティブバージョンIDも取得
+            const activeRes = await fetch('https://camper-chatbot.onrender.com/api/get_active_prompt_version');
+            if (!activeRes.ok) throw new Error('アクティブバージョン情報の取得に失敗しました');
+            const activeData = await activeRes.json();
+            const activeVersionId = activeData.activeVersionId;
+
             const res = await fetch('https://camper-chatbot.onrender.com/api/prompt_versions');
             if (!res.ok) throw new Error('バージョン履歴の取得に失敗しました');
             const data = await res.json();
@@ -243,17 +249,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 const createdAt = v.createdAt && v.createdAt._seconds ?
                     new Date(v.createdAt._seconds * 1000).toLocaleString('ja-JP') : 'N/A';
                 const commentText = v.comment ? `<div class='version-comment'>💬 ${v.comment}</div>` : '';
+                let buttonHtml = '';
+                if (v.id === activeVersionId) {
+                    buttonHtml = `<button class="restore-version-btn active-version-btn" disabled>アクティブ</button>`;
+                } else {
+                    buttonHtml = `<button data-version-id="${v.id}" class="restore-version-btn">このバージョンを復元</button>`;
+                }
                 const item = document.createElement('div');
                 item.className = 'version-history-item';
                 item.innerHTML = `
                     <b>v${v.version}</b>（${createdAt}） 編集者: ${v.editor || '不明'}
-                    <button data-version-id="${v.id}" class="restore-version-btn">このバージョンを復元</button>
+                    ${buttonHtml}
                     ${commentText}
                 `;
                 versionHistoryList.appendChild(item);
             });
             // 復元ボタンのイベント
             document.querySelectorAll('.restore-version-btn').forEach(btn => {
+                if (btn.disabled) return;
                 btn.addEventListener('click', async (e) => {
                     const versionId = btn.getAttribute('data-version-id');
                     if (!confirm('このバージョンをアクティブにしますか？')) return;
