@@ -5,6 +5,24 @@ require('dotenv').config();
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 
+// 本番環境とテスト環境の両方のドメインを許可するリスト
+const allowedOrigins = [
+    'https://kpi-campingcar.com', // 本番HPのドメイン
+    'https://katudf.github.io'    // テストHPのドメイン
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+};
+
+app.use(cors(corsOptions));
+
 // Firebase Admin SDK をインポート
 const admin = require('firebase-admin');
 
@@ -27,7 +45,6 @@ function logger(level, message, details) {
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(cors());
 app.use(express.json()); // これを最初に移動
 
 // --- Firebase Admin SDKの初期化 ---
