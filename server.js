@@ -33,8 +33,11 @@ app.set('trust proxy', 1);
 
 // --- ★★★ 修正点：CORS設定をapp初期化の後に移動 ★★★ ---
 const allowedOrigins = [
+    'http://localhost:3000', // ローカル開発用
+    'http://127.0.0.1:3000', // ローカル開発用
     'https://kpi-campingcar.com', // 本番HPのドメイン
-    'https://katudf.github.io'    // テストHPのドメイン
+    'https://katudf.github.io',  // テストHPのドメイン
+    'https://camper-chatbot.onrender.com'  // RenderのURL
 ];
 
 const corsOptions = {
