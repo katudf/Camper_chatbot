@@ -36,7 +36,8 @@ const allowedOrigins = [
     'https://kpi-campingcar.com',
     'https://katudf.github.io',
     'https://camper-chatbot.onrender.com',
-    'https://camper-chatbot-loss.web.app' // ★★★ エラーに出ていたURLを追加！ ★★★
+    'https://camper-chatbot-loss.web.app', // ★★★ エラーに出ていたURLを追加！ ★★★
+    'https://camper-chatbot-logs.web.app'
 ];
 const corsOptions = {
   origin: function (origin, callback) {
