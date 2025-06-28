@@ -26,7 +26,10 @@ function logger(level, message, details) {
 
 const app = express();
 const port = process.env.PORT || 3000;
-
+// --- ★★★ 修正点：プロキシを信頼する設定を追加 ★★★ ---
+// Renderのようなホスティング環境では、この設定が必要
+app.set('trust proxy', 1);
+// --- ★★★ 修正ここまで ★★★ ---
 
 // --- ★★★ 修正点：CORS設定をapp初期化の後に移動 ★★★ ---
 const allowedOrigins = [
