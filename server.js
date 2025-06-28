@@ -4,8 +4,6 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 require('dotenv').config();
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
-
-// Firebase Admin SDK をインポート
 const admin = require('firebase-admin');
 
 // --- 簡易ロガー関数の導入 ---
@@ -33,42 +31,43 @@ app.set('trust proxy', 1);
 
 // --- ★★★ 修正点：CORS設定をapp初期化の後に移動 ★★★ ---
 const allowedOrigins = [
-    'http://localhost:3000', // ローカル開発用
-    'http://127.0.0.1:3000', // ローカル開発用
-    'https://kpi-campingcar.com', // 本番HPのドメイン
-    'https://katudf.github.io',  // テストHPのドメイン
-    'https://camper-chatbot.onrender.com'  // RenderのURL
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'https://kpi-campingcar.com',
+    'https://katudf.github.io',
+    'https://camper-chatbot.onrender.com',
+    'https://camper-chatbot-loss.web.app' // ★★★ エラーに出ていたURLを追加！ ★★★
 ];
-
 const corsOptions = {
   origin: function (origin, callback) {
+    // 許可リストに含まれていればCORSを許可
     if (!origin || allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      logger(LOG_LEVELS.ERROR, 'CORSによってブロックされたリクエスト', { origin: origin });
       callback(new Error('Not allowed by CORS'));
     }
   }
 };
-
 app.use(cors(corsOptions));
 app.use(express.json());
 // --- ★★★ 修正ここまで ★★★ ---
 
 // --- Firebase Admin SDKの初期化 ---
 try {
-    const serviceAccountPath = process.env.SERVICE_ACCOUNT_KEY_PATH;
-    if (!serviceAccountPath) {
-        logger(LOG_LEVELS.ERROR, '環境変数 SERVICE_ACCOUNT_KEY_PATH が設定されていません。');
-        process.exit(1);
+    // Renderの環境変数から直接JSON文字列を読み込むことを想定
+    const serviceAccountString = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+    if (!serviceAccountString) {
+        throw new Error('環境変数 FIREBASE_SERVICE_ACCOUNT_KEY が設定されていません。');
     }
-    const serviceAccount = require(serviceAccountPath);
+    const serviceAccount = JSON.parse(serviceAccountString);
+
     admin.initializeApp({
         credential: admin.credential.cert(serviceAccount)
     });
-    // dbインスタンスは各関数内で admin.firestore() を呼び出して取得
     logger(LOG_LEVELS.INFO, "Firebase Admin SDK has been initialized successfully.");
 } catch (error) {
-    logger(LOG_LEVELS.ERROR, 'Firebase Admin SDKの初期化に失敗しました。service-account-key.jsonファイルを確認してください。', { error: error.message });
+    logger(LOG_LEVELS.ERROR, 'Firebase Admin SDKの初期化に失敗しました。', { error: error.message });
     process.exit(1);
 }
 // --- Firebase初期化ここまで ---
