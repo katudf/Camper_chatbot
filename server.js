@@ -5,24 +5,6 @@ require('dotenv').config();
 const rateLimit = require('express-rate-limit');
 const cors = require('cors');
 
-// 本番環境とテスト環境の両方のドメインを許可するリスト
-const allowedOrigins = [
-    'https://kpi-campingcar.com', // 本番HPのドメイン
-    'https://katudf.github.io'    // テストHPのドメイン
-];
-
-const corsOptions = {
-  origin: function (origin, callback) {
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  }
-};
-
-app.use(cors(corsOptions));
-
 // Firebase Admin SDK をインポート
 const admin = require('firebase-admin');
 
@@ -45,7 +27,26 @@ function logger(level, message, details) {
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(express.json()); // これを最初に移動
+
+// --- ★★★ 修正点：CORS設定をapp初期化の後に移動 ★★★ ---
+const allowedOrigins = [
+    'https://kpi-campingcar.com', // 本番HPのドメイン
+    'https://katudf.github.io'    // テストHPのドメイン
+];
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  }
+};
+
+app.use(cors(corsOptions));
+app.use(express.json());
+// --- ★★★ 修正ここまで ★★★ ---
 
 // --- Firebase Admin SDKの初期化 ---
 try {
@@ -481,9 +482,6 @@ async function startServer() {
 
     app.listen(port, () => {
         logger(LOG_LEVELS.INFO, `サーバーが http://localhost:${port} で起動しました`);
-        logger(LOG_LEVELS.INFO, `チャットボットは http://localhost:${port} で利用できます。`);
-        logger(LOG_LEVELS.INFO, `プロンプトエディタは http://localhost:${port}/editor/editor.html で利用できます。`);
-        logger(LOG_LEVELS.INFO, `ダッシュボードは http://localhost:3000/dashboard/dashboard.html で利用できます。`);
     }).on('error', (err) => {
         logger(LOG_LEVELS.ERROR, 'サーバー起動時に致命的なエラーが発生しました:', { error: err.message });
         process.exit(1);
