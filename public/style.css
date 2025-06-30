@@ -37,6 +37,14 @@ body {
     font-weight: 600; /* ★ フォントの太さ */
 }
 
+.header-disclaimer {
+    font-size: 0.75rem; /* 12px相当の小さめの文字サイズ */
+    margin: 4px 0 0;
+    padding: 0 20px; /* 左右に少し余白を持たせる */
+    color: rgba(255, 255, 255, 0.85); /* 少し透明にして控えめに */
+    font-weight: 400; /* 通常の太さ */
+}
+
 .close-chat-button {
     position: absolute;
     top: 50%;
