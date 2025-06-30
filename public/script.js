@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const chatMessages = document.getElementById('chatMessages');
     const userInput = document.getElementById('userInput');
     const sendButton = document.getElementById('sendButton');
+    const closeButton = document.querySelector('.close-chat-button');
+    const chatContainer = document.querySelector('.chat-container');
     
     let loadingIntervalId = null;
 
@@ -18,6 +20,13 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     userInput.addEventListener('input', () => updateSendButtonState(userInput, sendButton));
+
+    // 閉じるボタンのイベントリスナー
+    if (closeButton && chatContainer) {
+        closeButton.addEventListener('click', () => {
+            chatContainer.style.display = 'none';
+        });
+    }
 });
 
 /**
